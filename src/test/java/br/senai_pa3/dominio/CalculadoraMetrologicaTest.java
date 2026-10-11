@@ -1,12 +1,14 @@
 package br.senai_pa3.dominio;
 
+import static br.senai_pa3.dominio.Pontos.bilateral;
+import static br.senai_pa3.dominio.Pontos.leituras;
+import static br.senai_pa3.dominio.Pontos.unilateral;
 import static br.senai_pa3.dominio.StatusPonto.DENTRO_DA_TOLERANCIA;
 import static br.senai_pa3.dominio.StatusPonto.FORA_DA_TOLERANCIA;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -144,24 +146,6 @@ class CalculadoraMetrologicaTest {
 
     private static Esperado esperado(String media, String erro, StatusPonto status) {
         return new Esperado(new BigDecimal(media), new BigDecimal(erro), status);
-    }
-
-    private static PontoEnsaio bilateral(String caracteristica, String referencia, String lea, String... leituras) {
-        return ponto(caracteristica, referencia, lea, "-" + lea, leituras);
-    }
-
-    private static PontoEnsaio unilateral(String caracteristica, String referencia, String lea, String... leituras) {
-        return ponto(caracteristica, referencia, lea, "0", leituras);
-    }
-
-    private static PontoEnsaio ponto(String caracteristica, String referencia, String tolSup, String tolInf,
-            String... leituras) {
-        return new PontoEnsaio(caracteristica, new BigDecimal(referencia), new BigDecimal(tolSup),
-                new BigDecimal(tolInf), leituras(leituras));
-    }
-
-    private static List<BigDecimal> leituras(String... valores) {
-        return Arrays.stream(valores).map(BigDecimal::new).toList();
     }
 
     private static void confere(ResultadoCalibracao resultado, Parecer parecer, Esperado... esperados) {
