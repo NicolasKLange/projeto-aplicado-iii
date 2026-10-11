@@ -498,7 +498,7 @@ no Maven Central antes de adicionar.
 
 ---
 
-### [ ] T13 · Validação da entrada e limites 🔒 ★
+### [x] T13 · Validação da entrada e limites 🔒 ★
 
 **Conceito.** Validar tudo e devolver **todos** os erros de uma vez (não parar no primeiro)
 economiza idas e vindas do operador. Cada erro precisa dizer onde: aba, linha, coluna e
