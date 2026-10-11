@@ -26,14 +26,14 @@ pronto: cada tarefa explica o conceito, diz o que fazer e o que trazer para revi
 **Cronograma até 15/10 (quinta-feira).** Só o caminho ★ cabe. O fim de semana concentra
 as decisões e o núcleo, porque os dias úteis rendem menos.
 
-| Dia | Tarefas | Marco |
-|---|---|---|
-| Sáb 10/10 | T01 a T05 | Decisões registradas e contrato da planilha fechado |
-| Dom 11/10 | T06 a T10 | Núcleo de cálculo com testes verdes |
-| Seg 12/10 | T12 e T13 | Planilha lida e validada |
-| Ter 13/10 | T14 a T16 e T18 | Fluxo completo na tela, evidências coletadas |
-| Qua 14/10 | T19 e T20 | Repositório público e relatório redigido |
-| Qui 15/10 | T21 | Revisão e envio no AVA |
+| Dia       | Tarefas         | Marco                                               |
+| --------- | --------------- | --------------------------------------------------- |
+| Sáb 10/10 | T01 a T05       | Decisões registradas e contrato da planilha fechado |
+| Dom 11/10 | T06 a T10       | Núcleo de cálculo com testes verdes                 |
+| Seg 12/10 | T12 e T13       | Planilha lida e validada                            |
+| Ter 13/10 | T14 a T16 e T18 | Fluxo completo na tela, evidências coletadas        |
+| Qua 14/10 | T19 e T20       | Repositório público e relatório redigido            |
+| Qui 15/10 | T21             | Revisão e envio no AVA                              |
 
 T11 e T17 (◇) só entram se algum dia terminar adiantado.
 
@@ -44,14 +44,14 @@ contrato e nas planilhas de teste, outra no núcleo de cálculo. A fase 3 depend
 
 ## 1. O que o roteiro pede (e o que falta nele)
 
-| Item do roteiro | O que exige | Onde está neste guia |
-|---|---|---|
-| Item 1.1 — Ingestão | Ler o Excel enviado pelo usuário com leituras e valores do padrão | Fases 1 e 3 |
-| Item 1.2 — Regras | Média por ponto · erro sistemático (média − padrão) · \|erro\| vs LEA → `DENTRO_DA_TOLERANCIA` / `FORA_DA_TOLERANCIA` · parecer `APROVADO` / `REPROVADO` | Fase 2 |
-| Item 2 | Não consta no PDF. Tratado como erro de numeração (pergunta enviada ao professor em 10/10; se a resposta mudar algo, revisar) | — |
-| Objetivo da entrega (seção 1) | "Apresentar os resultados calculados e o parecer final numa interface limpa e intuitiva" | T16 |
-| Item 3 — Evidências | Relatório PDF no AVA com evidências + link do GitHub **público** com todo o código | Fase 5 |
-| Critério de avaliação | Funcionamento prático, coerência da arquitetura transacional, evidências de teste | Todas |
+| Item do roteiro               | O que exige                                                                                                                                              | Onde está neste guia |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| Item 1.1 — Ingestão           | Ler o Excel enviado pelo usuário com leituras e valores do padrão                                                                                        | Fases 1 e 3          |
+| Item 1.2 — Regras             | Média por ponto · erro sistemático (média − padrão) · \|erro\| vs LEA → `DENTRO_DA_TOLERANCIA` / `FORA_DA_TOLERANCIA` · parecer `APROVADO` / `REPROVADO` | Fase 2               |
+| Item 2                        | Não consta no PDF. Tratado como erro de numeração (pergunta enviada ao professor em 10/10; se a resposta mudar algo, revisar)                            | —                    |
+| Objetivo da entrega (seção 1) | "Apresentar os resultados calculados e o parecer final numa interface limpa e intuitiva"                                                                 | T16                  |
+| Item 3 — Evidências           | Relatório PDF no AVA com evidências + link do GitHub **público** com todo o código                                                                       | Fase 5               |
+| Critério de avaliação         | Funcionamento prático, coerência da arquitetura transacional, evidências de teste                                                                        | Todas                |
 
 **Nomes exatos.** Os enums do roteiro (`DENTRO_DA_TOLERANCIA`, `FORA_DA_TOLERANCIA`,
 `APROVADO`, `REPROVADO`) devem aparecer **literalmente** no código e na tela. É o primeiro
@@ -73,6 +73,7 @@ O resto vai para "limitações e próximos passos" no relatório, com os código
 **Objetivo.** Não construir no escuro. O roteiro não tem data nem Item 2.
 
 **Faça.**
+
 - Confirme a data da AV03 no AVA (o guia antigo dizia 15/10/2026).
 - Mande ao professor uma pergunta curta e fechada. Sugestão de texto:
 
@@ -91,16 +92,16 @@ O resto vai para "limitações e próximos passos" no relatório, com os código
 
 ### [x] T01 · Escolher a stack e registrar como D-011 ★
 
-**Conceito.** Decisão de arquitetura (ADR) é escrita *antes* do código porque explica ao
+**Conceito.** Decisão de arquitetura (ADR) é escrita _antes_ do código porque explica ao
 avaliador por que o projeto é como é. O `docs/decisoes.md` já segue esse formato.
 
 **Opções.**
 
-| Opção | A favor | Contra |
-|---|---|---|
-| **A. Java 17 + Spring Boot 3 + Maven** | Stack que você usa no trabalho; o guia antigo já apontava essa escolha; JUnit 5 vem junto | Mais cerimônia para subir |
-| B. Python + FastAPI | Menos código; openpyxl é simples | Não exercita o que você quer aprender; openpyxl também não lê Strict |
-| C. Node + Express | Combina com React na AV04 | Cálculo decimal exige biblioteca extra |
+| Opção                                  | A favor                                                                                   | Contra                                                               |
+| -------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| **A. Java 17 + Spring Boot 3 + Maven** | Stack que você usa no trabalho; o guia antigo já apontava essa escolha; JUnit 5 vem junto | Mais cerimônia para subir                                            |
+| B. Python + FastAPI                    | Menos código; openpyxl é simples                                                          | Não exercita o que você quer aprender; openpyxl também não lê Strict |
+| C. Node + Express                      | Combina com React na AV04                                                                 | Cálculo decimal exige biblioteca extra                               |
 
 **Interface (Item 2).** Para a parte 1, uma página estática (HTML + JS puro) servida pelo
 próprio Spring Boot resolve sem nenhuma dependência nova. React fica para a AV04.
@@ -110,6 +111,7 @@ próprio Spring Boot resolve sem nenhuma dependência nova. React fica para a AV
 (o `.xlsx` é um zip de XMLs), mas não vale o tempo nesta entrega.
 
 **Faça.**
+
 - Escolha a opção (discuta com o grupo: todos conseguem rodar?).
 - Escreva a D-011 no `docs/decisoes.md` com o formato existente: data, origem, status e
   5–8 linhas de justificativa.
@@ -137,6 +139,7 @@ O núcleo de cálculo da AV03 é o mesmo código que a `fn-ingestao` executaria.
 argumento de "coerência arquitetural" do relatório.
 
 **Pergunte-se antes de escrever:**
+
 - Por que o núcleo não pode importar nada do Spring?
 - O que muda, e o que não muda, quando o mesmo núcleo rodar dentro de uma Lambda?
 
@@ -157,6 +160,7 @@ argumento de "coerência arquitetural" do relatório.
 atual. Um arquivo removido num commit continua acessível nos commits antigos.
 
 **Faça.**
+
 - Liste o que já foi versionado: `git log --all --name-only --format="" | sort -u`.
 - Verifique se `docs/av01/` e `docs/av02/` (DOCX/PDF) citam nome ou matrícula de técnico,
   nome de cliente/fornecedor ou números de série reais. Decida: manter, anonimizar ou tirar
@@ -181,14 +185,15 @@ cada termo significa no caso real.
 
 **Faça.** Abra o certificado 00091/2026 e as planilhas (localmente) e preencha:
 
-| Termo do roteiro | O que é na Schulz | Onde está (arquivo/aba/célula) |
-|---|---|---|
-| Ponto de ensaio | ? (dica: característica) | |
-| Leituras | ? (quantas por ponto?) | |
-| Valor padrão de referência | ? (nominal? valor do padrão?) | |
-| LEA | ? (tolerância?) | |
+| Termo do roteiro           | O que é na Schulz             | Onde está (arquivo/aba/célula) |
+| -------------------------- | ----------------------------- | ------------------------------ |
+| Ponto de ensaio            | ? (dica: característica)      |                                |
+| Leituras                   | ? (quantas por ponto?)        |                                |
+| Valor padrão de referência | ? (nominal? valor do padrão?) |                                |
+| LEA                        | ? (tolerância?)               |                                |
 
 **Perguntas a responder:**
+
 - A tolerância da Schulz é sempre simétrica (± 0,05) ou existe assimétrica (+0,05 / −0,02)?
   O LEA do roteiro é um único valor. Se houver assimetria, qual é a decisão do grupo?
 - Fronteira: um ponto com |erro| **exatamente igual** ao LEA está dentro ou fora?
@@ -199,14 +204,15 @@ cada termo significa no caso real.
 
 > **Concluída em 10/10. Resultado** (fonte: `Registro MMC (4).xlsx`, aba Report):
 >
-> | Termo do roteiro | Na Schulz | Onde está |
-> |---|---|---|
-> | Ponto de ensaio | Characteristic | coluna A |
-> | Leituras | Actual — duas por ponto, em dois blocos de linhas | B14:B27 (1ª) e B29:B42 (2ª) |
-> | Valor padrão de referência | Nominal | coluna C |
-> | LEA | Upper Tol | coluna D |
+> | Termo do roteiro           | Na Schulz                                         | Onde está                   |
+> | -------------------------- | ------------------------------------------------- | --------------------------- |
+> | Ponto de ensaio            | Characteristic                                    | coluna A                    |
+> | Leituras                   | Actual — duas por ponto, em dois blocos de linhas | B14:B27 (1ª) e B29:B42 (2ª) |
+> | Valor padrão de referência | Nominal                                           | coluna C                    |
+> | LEA                        | Upper Tol                                         | coluna D                    |
 >
 > **Decisões:**
+>
 > - **D-T04-1 · Fronteira:** `|E| ≤ LEA` é `DENTRO_DA_TOLERANCIA` (o limite ainda faz parte
 >   da margem de tolerância).
 > - **D-T04-2 · Tipos de tolerância aceitos:** bilateral simétrica (Tol− = −Tol+) e unilateral
@@ -233,11 +239,12 @@ cada termo significa no caso real.
 > **Concluída em 10/10.** `docs/av03/contrato-planilha.md`: aba `Medicoes`, formato largo,
 > Tol+ e Tol− na entrada com LEA derivado, só `.xlsx` Transitional, regras de rejeição R01–R15.
 
-**Conceito.** A AV02 deixou explícito: *"O layout exato de abas e colunas é fixado como
-contrato na Entrega 03 [PREMISSA]"*. Esta tarefa fecha essa premissa. Contrato bom é aquele
+**Conceito.** A AV02 deixou explícito: _"O layout exato de abas e colunas é fixado como
+contrato na Entrega 03 [PREMISSA]"_. Esta tarefa fecha essa premissa. Contrato bom é aquele
 que permite a outra pessoa criar um arquivo válido sem perguntar nada.
 
 **Faça.** Crie `docs/av03/contrato-planilha.md` definindo:
+
 - Nome da aba (ex.: `Medicoes`) e se a ordem das abas importa.
 - Colunas: nome do cabeçalho, tipo, unidade, obrigatoriedade, exemplo.
   Mínimo: identificador do ponto, valor de referência, LEA, leitura 1 … leitura N.
@@ -275,27 +282,27 @@ como o ponto exatamente no limite.
 como `.xlsx` padrão), com identificadores fictícios e os **cabeçalhos exatos do contrato**.
 Os inválidos levam o código da regra no nome, para rastrear regra → arquivo → teste (T13).
 
-| Arquivo | Regra | Cenário | Resultado esperado |
-|---|---|---|---|
-| `ok-aprovado.xlsx` | — | Todos os pontos dentro | `APROVADO` |
-| `ok-reprovado.xlsx` | — | Um ponto fora entre vários | `REPROVADO` |
-| `ok-limite.xlsx` | D-T04-1 | \|E\| = LEA exatamente | `DENTRO_DA_TOLERANCIA` |
-| `ok-erro-negativo.xlsx` | — | Média abaixo da referência, ainda dentro | `APROVADO` (testa o `abs`) |
-| `ok-unilateral.xlsx` | D-T04-2 | Tol− = 0, um ponto dentro e um fora | `REPROVADO`, status certo por ponto |
-| `inv-R02-nao-xlsx.xlsx` | R02 | Arquivo de texto (ex.: CSV) renomeado para `.xlsx` | Rejeitado |
-| `inv-R03-strict.xlsx` | R03 | Conteúdo de `ok-aprovado` salvo como Strict | Rejeitado com mensagem clara |
-| `inv-R04-sem-aba.xlsx` | R04 | Aba com outro nome | Rejeitado |
-| `inv-R05-sem-tolsup.xlsx` | R05 | Falta a coluna `ToleranciaSuperior` | Rejeitado, mensagem cita a coluna |
-| `inv-R06-uma-leitura.xlsx` | R06 | Só `Leitura1` | Rejeitado |
-| `inv-R07-desvio.xlsx` | R07 | Coluna `Desvio` presente | Rejeitado |
-| `inv-R08-vazia.xlsx` | R08 | Só o cabeçalho | Rejeitado (nenhum ponto) |
-| `inv-R10-obrigatorio.xlsx` | R10 | Célula obrigatória vazia | Rejeitado, linha e coluna |
-| `inv-R11-texto.xlsx` | R11 | "abc" numa leitura | Rejeitado, linha e coluna |
-| `inv-R12-repetida.xlsx` | R12 | Característica repetida | Rejeitado, as duas linhas |
-| `inv-R13-tolsup-zero.xlsx` | R13 | `ToleranciaSuperior` = 0 | Rejeitado |
-| `inv-R14-assimetrica.xlsx` | R14 | Tol+ = 0,05 e Tol− = −0,02 | Rejeitado: fora do escopo |
-| `inv-R15-negativa-unilateral.xlsx` | R15 | Leitura negativa com Tol− = 0 | Rejeitado, linha e coluna |
-| `inv-multiplos-erros.xlsx` | R10, R11, R14 | Um erro de linha diferente em três linhas | Os três erros devolvidos juntos |
+| Arquivo                            | Regra         | Cenário                                            | Resultado esperado                  |
+| ---------------------------------- | ------------- | -------------------------------------------------- | ----------------------------------- |
+| `ok-aprovado.xlsx`                 | —             | Todos os pontos dentro                             | `APROVADO`                          |
+| `ok-reprovado.xlsx`                | —             | Um ponto fora entre vários                         | `REPROVADO`                         |
+| `ok-limite.xlsx`                   | D-T04-1       | \|E\| = LEA exatamente                             | `DENTRO_DA_TOLERANCIA`              |
+| `ok-erro-negativo.xlsx`            | —             | Média abaixo da referência, ainda dentro           | `APROVADO` (testa o `abs`)          |
+| `ok-unilateral.xlsx`               | D-T04-2       | Tol− = 0, um ponto dentro e um fora                | `REPROVADO`, status certo por ponto |
+| `inv-R02-nao-xlsx.xlsx`            | R02           | Arquivo de texto (ex.: CSV) renomeado para `.xlsx` | Rejeitado                           |
+| `inv-R03-strict.xlsx`              | R03           | Conteúdo de `ok-aprovado` salvo como Strict        | Rejeitado com mensagem clara        |
+| `inv-R04-sem-aba.xlsx`             | R04           | Aba com outro nome                                 | Rejeitado                           |
+| `inv-R05-sem-tolsup.xlsx`          | R05           | Falta a coluna `ToleranciaSuperior`                | Rejeitado, mensagem cita a coluna   |
+| `inv-R06-uma-leitura.xlsx`         | R06           | Só `Leitura1`                                      | Rejeitado                           |
+| `inv-R07-desvio.xlsx`              | R07           | Coluna `Desvio` presente                           | Rejeitado                           |
+| `inv-R08-vazia.xlsx`               | R08           | Só o cabeçalho                                     | Rejeitado (nenhum ponto)            |
+| `inv-R10-obrigatorio.xlsx`         | R10           | Célula obrigatória vazia                           | Rejeitado, linha e coluna           |
+| `inv-R11-texto.xlsx`               | R11           | "abc" numa leitura                                 | Rejeitado, linha e coluna           |
+| `inv-R12-repetida.xlsx`            | R12           | Característica repetida                            | Rejeitado, as duas linhas           |
+| `inv-R13-tolsup-zero.xlsx`         | R13           | `ToleranciaSuperior` = 0                           | Rejeitado                           |
+| `inv-R14-assimetrica.xlsx`         | R14           | Tol+ = 0,05 e Tol− = −0,02                         | Rejeitado: fora do escopo           |
+| `inv-R15-negativa-unilateral.xlsx` | R15           | Leitura negativa com Tol− = 0                      | Rejeitado, linha e coluna           |
+| `inv-multiplos-erros.xlsx`         | R10, R11, R14 | Um erro de linha diferente em três linhas          | Os três erros devolvidos juntos     |
 
 R01 (5 MB) e R09 (10 mil linhas) não viram arquivo versionado: o conteúdo é gerado no próprio
 teste (T13/T15).
@@ -326,6 +333,7 @@ referência, LEA, média, erro, status).
 > (precisa de `@AutoConfigureMockMvc`).
 
 **Faça.**
+
 - Gere o projeto no Spring Initializr: Java 17, Maven, Spring Boot 3.x, dependências
   `Spring Web` e `Validation`. Group `br.senai.pa3` (ou o que o grupo preferir).
 - Coloque na raiz do repositório (ou em `src/`, conforme a estrutura do README).
@@ -360,6 +368,7 @@ crie sempre a partir de `String` (`new BigDecimal("0.1")`, nunca `new BigDecimal
 compare com `compareTo`, não com `equals` (`2.0` e `2.00` não são `equals`).
 
 **Faça.** Desenhe (primeiro no papel, depois em código):
+
 - `record PontoEnsaio(String caracteristica, BigDecimal valorReferencia, BigDecimal tolSuperior, BigDecimal tolInferior, List<BigDecimal> leituras)`,
   com `lea()` **derivado** (LEA = Tol+), não como campo. Atenção à diferença entre `> 0`
   (Tol+, R13) e `>= 0` (leitura em característica unilateral, R15).
@@ -369,6 +378,7 @@ compare com `compareTo`, não com `equals` (`2.0` e `2.00` não são `equals`).
 - `record ResultadoCalibracao(...)`
 
 **Perguntas antes de codar:**
+
 - Que invariantes o construtor compacto do `PontoEnsaio` deve garantir? (leituras vazias?
   LEA negativo? LEA zero? `id` em branco?)
 - A lista de leituras recebida deve ser copiada (`List.copyOf`)? Por quê?
@@ -394,12 +404,13 @@ comportamento antes da implementação.
 
 **Exemplo-guia** (confira as contas antes de usar):
 
-| Leituras | Referência | Média | Erro sistemático |
-|---|---|---|---|
-| 10,02 · 10,04 · 10,03 | 10,00 | 10,03 | +0,03 |
-| 9,98 · 9,96 | 10,00 | 9,97 | −0,03 |
+| Leituras              | Referência | Média | Erro sistemático |
+| --------------------- | ---------- | ----- | ---------------- |
+| 10,02 · 10,04 · 10,03 | 10,00      | 10,03 | +0,03            |
+| 9,98 · 9,96           | 10,00      | 9,97  | −0,03            |
 
 **Faça.**
+
 - `CalculadoraMetrologicaTest` em JUnit 5: um teste por linha da tabela acima e um por ponto
   do seu oráculo da T06.
 - Implemente `media(List<BigDecimal>)` (o erro já é derivado no `ResultadoPonto`, T08) e o
@@ -421,12 +432,12 @@ comportamento antes da implementação.
 > oráculo e sem calculadora; fixtures comuns em `Pontos.java`. Como a implementação já existia (T08),
 > o vermelho veio de **mutação manual**:
 >
-> | Mutação | Testes que falham |
-> |---|---|
-> | `<= 0` → `< 0` | fronteiras positiva e negativa, `okLimite` |
-> | sem `.abs()` | `arredondamentoNegativo`, `okArredondamento` (só o caso negativo-e-fora pega) |
-> | `allMatch` → `anyMatch` | `umForaEntreVarios` + 3 cenários da calculadora |
-> | sem `isEmpty()` | só `listaVazia` — **a suíte da T09 sozinha não pegava** (aprovação silenciosa) |
+> | Mutação                 | Testes que falham                                                              |
+> | ----------------------- | ------------------------------------------------------------------------------ |
+> | `<= 0` → `< 0`          | fronteiras positiva e negativa, `okLimite`                                     |
+> | sem `.abs()`            | `arredondamentoNegativo`, `okArredondamento` (só o caso negativo-e-fora pega)  |
+> | `allMatch` → `anyMatch` | `umForaEntreVarios` + 3 cenários da calculadora                                |
+> | sem `isEmpty()`         | só `listaVazia` — **a suíte da T09 sozinha não pegava** (aprovação silenciosa) |
 
 **Conceito: a armadilha da lista vazia.** Em Java, `Stream.empty().allMatch(...)` retorna
 `true`. Uma implementação ingênua de "aprovado se todos os pontos estão dentro" aprova uma
@@ -434,6 +445,7 @@ calibração **sem nenhum ponto**. Em medical device, isso é um defeito grave: 
 evidência não pode virar aprovação.
 
 **Faça.** Testes primeiro:
+
 - Ponto dentro, ponto fora, ponto na fronteira (conforme T04), erro negativo dentro.
 - Parecer com todos dentro → `APROVADO`; um fora entre vários → `REPROVADO`.
 - Lista vazia → o que acontece? (Decida: exceção? Esse caso nem chega aqui porque a
@@ -483,6 +495,7 @@ Trocar POI por CSV, ou por exportação nativa do Calypso (PV-08), não toca no 
 no Maven Central antes de adicionar.
 
 **Faça.**
+
 - Leia a aba definida no contrato; localize as colunas **pelo cabeçalho**, não pela posição.
 - Estude `DataFormatter` e `CellType`: célula numérica, texto, fórmula (o valor em cache
   serve?) e vazia se comportam de forma diferente.
@@ -500,11 +513,21 @@ no Maven Central antes de adicionar.
 
 ### [x] T13 · Validação da entrada e limites 🔒 ★
 
+> **Concluída em 11/10.** R01 (5 MB) conferida no leitor antes de abrir o conteúdo (exatamente 5 MB
+> passa para as próximas regras); a T15 repete o limite no multipart. R02 por `FileMagic`: arquivo vazio,
+> cortado e CSV renomeado caem na R02 (resolve a pendência da T12). R03 por
+> `OPCPackage.isStrictOoxmlFormat()`. R04–R09 interrompem com um `ErroValidacao`; R10–R15 são todos
+> coletados (classe interna `Coleta`). R11 rejeita texto que parece número, booleano, erro e fórmula
+> (mesmo com cache), com mensagem própria para fórmula. R09: teto de 10 mil linhas; linhas só formatadas
+> não contam. `ZipSecureFile.setMaxEntrySize(50 MB)` em bloco `static` (D-013).
+> `LeitorPlanilhaPoiInvalidosTest`: 25 testes com o código da regra no nome. Suíte: 57 verdes.
+
 **Conceito.** Validar tudo e devolver **todos** os erros de uma vez (não parar no primeiro)
 economiza idas e vindas do operador. Cada erro precisa dizer onde: aba, linha, coluna e
 motivo.
 
 **Faça.**
+
 - `PlanilhaInvalidaException` carregando uma lista de `ErroValidacao(linha, coluna, motivo)`.
 - Cubra os arquivos `inv-*` da T06: um teste por regra R01–R15 do contrato, com o código da
   regra no nome do teste.
@@ -515,7 +538,7 @@ motivo.
   - aceitar só `.xlsx`; não executar nem avaliar macros.
 - A mensagem para o usuário não expõe stack trace nem caminho do servidor.
 
-**Pergunte-se.** Por que validar a extensão do arquivo não basta? (O que é *magic number*?)
+**Pergunte-se.** Por que validar a extensão do arquivo não basta? (O que é _magic number_?)
 
 **Traga.** A exceção, o validador e os testes dos inválidos passando.
 
@@ -524,6 +547,7 @@ motivo.
 ### [ ] T14 · Endpoint de processamento ★
 
 **Faça.**
+
 - `ProcessamentoService` (pacote `aplicacao`): recebe o `InputStream`, chama o leitor e a
   calculadora, devolve `ResultadoCalibracao`.
 - `POST /api/calibracoes/processamento` com `multipart/form-data` (campo `arquivo`).
@@ -542,12 +566,12 @@ motivo.
 
 **Faça.** `@RestControllerAdvice` mapeando:
 
-| Situação | HTTP | Corpo |
-|---|---|---|
-| Planilha inválida | 400 | `ProblemDetail` + lista de erros (linha/coluna/motivo) |
-| Arquivo maior que o limite | 413 | Mensagem com o limite |
-| Tipo de arquivo não aceito | 415 | Formatos aceitos |
-| Erro inesperado | 500 | Mensagem genérica + id de correlação; detalhe só no log |
+| Situação                   | HTTP | Corpo                                                   |
+| -------------------------- | ---- | ------------------------------------------------------- |
+| Planilha inválida          | 400  | `ProblemDetail` + lista de erros (linha/coluna/motivo)  |
+| Arquivo maior que o limite | 413  | Mensagem com o limite                                   |
+| Tipo de arquivo não aceito | 415  | Formatos aceitos                                        |
+| Erro inesperado            | 500  | Mensagem genérica + id de correlação; detalhe só no log |
 
 **Logs e LGPD.** Registre o hash SHA-256 e o tamanho do arquivo, nunca o conteúdo. Se o
 contrato tiver nome de técnico, ele não vai para o log.
@@ -563,6 +587,7 @@ resultados e o parecer "numa interface limpa e intuitiva": enviar o arquivo, ver
 por ponto e o parecer.
 
 **Faça.** `src/main/resources/static/index.html` com HTML, CSS e JS puro (`fetch`):
+
 - Campo de arquivo + botão; estado de carregamento; mensagem de erro legível (usa a lista
   de erros da T15).
 - Tabela: ponto, leituras, média, referência, erro, LEA, status.
@@ -593,9 +618,9 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 
 **Faça.** `docs/av03/evidencias.md` com uma linha por caso:
 
-| ID | Requisito | Arquivo | Esperado | Obtido | Evidência |
-|---|---|---|---|---|---|
-| CT-01 | Item 1.2 (parecer) · RF-08 | `ok-aprovado.xlsx` | `APROVADO` | | print |
+| ID    | Requisito                  | Arquivo            | Esperado   | Obtido | Evidência |
+| ----- | -------------------------- | ------------------ | ---------- | ------ | --------- |
+| CT-01 | Item 1.2 (parecer) · RF-08 | `ok-aprovado.xlsx` | `APROVADO` |        | print     |
 
 - Inclua todos os arquivos da T06, os testes automatizados (print do `mvn test` ou do
   relatório do Surefire) e os prints da tela.
@@ -608,6 +633,7 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 ### [ ] T19 · README e repositório público ★
 
 **Faça.**
+
 - README: o que é, como rodar (`mvn spring-boot:run`, endereço da tela), como rodar os
   testes, estrutura de pastas, aviso sobre dados sintéticos, status das entregas atualizado.
 - Clone o repositório numa pasta limpa e siga o seu próprio README do zero. Se travar, o
@@ -655,27 +681,27 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 
 ## Registro de progresso
 
-| Tarefa | Responsável | Status | Observação |
-|---|---|---|---|
-| T00 | Rodrigo | Concluída | Prazo 15/10; Item 2 ignorado até resposta |
-| T01 | Rodrigo | Concluída | D-011 em decisoes.md |
-| T02 | Rodrigo | Concluída | D-012 em decisoes.md |
-| T03 | Rodrigo | Concluída | Histórico reiniciado; público só na T19 |
-| T04 | Rodrigo | Concluída | Mapeamento + decisões D-T04-1 a 5 |
-| T05 | Rodrigo | Concluída | contrato-planilha.md, R01–R15 |
-| T06 | Rodrigo | Concluída | 21 planilhas + oráculo + gerador |
-| T07 | Rodrigo | Concluída | Boot 4.1, pacote br.senai_pa3 |
-| T08 | Rodrigo | Concluída | Status, erro e parecer derivados nos records |
-| T09 | Rodrigo | Concluída | Escala 10, HALF_EVEN; vermelho da dízima registrado |
-| T10 | Rodrigo | Concluída | Mutação manual; lista vazia só pega com teste próprio |
-| T11 | | | |
-| T12 | Rodrigo | Concluída | POI 5.5.1; Strict recusado; porta em ingestao |
-| T13 | | | |
-| T14 | | | |
-| T15 | | | |
-| T16 | | | |
-| T17 | | | |
-| T18 | | | |
-| T19 | | | |
-| T20 | | | |
-| T21 | | | |
+| Tarefa | Responsável | Status    | Observação                                                   |
+| ------ | ----------- | --------- | ------------------------------------------------------------ |
+| T00    | Rodrigo     | Concluída | Prazo 15/10; Item 2 ignorado até resposta                    |
+| T01    | Rodrigo     | Concluída | D-011 em decisoes.md                                         |
+| T02    | Rodrigo     | Concluída | D-012 em decisoes.md                                         |
+| T03    | Rodrigo     | Concluída | Histórico reiniciado; público só na T19                      |
+| T04    | Rodrigo     | Concluída | Mapeamento + decisões D-T04-1 a 5                            |
+| T05    | Rodrigo     | Concluída | contrato-planilha.md, R01–R15                                |
+| T06    | Rodrigo     | Concluída | 21 planilhas + oráculo + gerador                             |
+| T07    | Rodrigo     | Concluída | Boot 4.1, pacote br.senai_pa3                                |
+| T08    | Rodrigo     | Concluída | Status, erro e parecer derivados nos records                 |
+| T09    | Rodrigo     | Concluída | Escala 10, HALF_EVEN; vermelho da dízima registrado          |
+| T10    | Rodrigo     | Concluída | Mutação manual; lista vazia só pega com teste próprio        |
+| T11    |             |           |                                                              |
+| T12    | Rodrigo     | Concluída | POI 5.5.1; Strict recusado; porta em ingestao                |
+| T13    | Rodrigo     | Concluída | R01–R15 no leitor; FileMagic, coleta de erros; D-013 (50 MB) |
+| T14    |             |           |                                                              |
+| T15    |             |           |                                                              |
+| T16    |             |           |                                                              |
+| T17    |             |           |                                                              |
+| T18    |             |           |                                                              |
+| T19    |             |           |                                                              |
+| T20    |             |           |                                                              |
+| T21    |             |           |                                                              |
