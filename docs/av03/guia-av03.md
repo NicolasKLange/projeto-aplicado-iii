@@ -379,7 +379,14 @@ compare com `compareTo`, não com `equals` (`2.0` e `2.00` não são `equals`).
 
 ---
 
-### [ ] T09 · Média e erro sistemático com TDD ★
+### [x] T09 · Média e erro sistemático com TDD ★
+
+> **Concluída em 11/10.** `CalculadoraMetrologica` (instância, sem Spring): `media` com escala 10 e
+> `HALF_EVEN` (regra do par da NBR 5891), lista nula ou vazia → `IllegalArgumentException`;
+> `calcular` mantém a ordem dos pontos. 10 testes com AssertJ `isEqualByComparingTo`, valores exatos
+> do Java (`10.0166666667` distingue `HALF_EVEN` de `DOWN`). Vermelho 2 registrado: sem escala, só a
+> dízima lança `ArithmeticException: Non-terminating decimal expansion`; a divisão exata com três
+> leituras passa. Escala, não `MathContext`: a resolução em mm tem de ser absoluta.
 
 **Conceito: TDD.** Escreva o teste, veja falhar (vermelho), implemente o mínimo para passar
 (verde), melhore o código (refatorar). O teste escrito antes obriga você a decidir o
@@ -637,7 +644,7 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 | T06 | Rodrigo | Concluída | 21 planilhas + oráculo + gerador |
 | T07 | Rodrigo | Concluída | Boot 4.1, pacote br.senai_pa3 |
 | T08 | Rodrigo | Concluída | Status, erro e parecer derivados nos records |
-| T09 | | | |
+| T09 | Rodrigo | Concluída | Escala 10, HALF_EVEN; vermelho da dízima registrado |
 | T10 | | | |
 | T11 | | | |
 | T12 | | | |
