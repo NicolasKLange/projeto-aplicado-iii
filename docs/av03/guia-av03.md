@@ -89,7 +89,7 @@ O resto vai para "limitações e próximos passos" no relatório, com os código
 
 ---
 
-### [ ] T01 · Escolher a stack e registrar como D-011 ★
+### [x] T01 · Escolher a stack e registrar como D-011 ★
 
 **Conceito.** Decisão de arquitetura (ADR) é escrita *antes* do código porque explica ao
 avaliador por que o projeto é como é. O `docs/decisoes.md` já segue esse formato.
@@ -118,7 +118,7 @@ próprio Spring Boot resolve sem nenhuma dependência nova. React fica para a AV
 
 ---
 
-### [ ] T02 · Amarrar o MVP à arquitetura da AV02 (D-012) ★
+### [x] T02 · Amarrar o MVP à arquitetura da AV02 (D-012) ★
 
 **Conceito.** A AV02 descreveu um pipeline serverless (S3 → `fn-ingestao` → DynamoDB →
 `fn-certificado`). A AV03 pede uma aplicação web transacional. Isso não é contradição se o
@@ -168,7 +168,7 @@ atual. Um arquivo removido num commit continua acessível nos commits antigos.
 
 ## Fase 1 — Contrato de entrada
 
-### [ ] T04 · Mapear o modelo do roteiro para os dados reais ★
+### [x] T04 · Mapear o modelo do roteiro para os dados reais ★
 
 **Conceito.** O roteiro usa vocabulário genérico de calibração de instrumento. A Schulz
 calibra dispositivos de controle medidos na MMC. Antes de codificar, é preciso dizer o que
@@ -192,6 +192,35 @@ cada termo significa no caso real.
 
 **Traga.** A tabela preenchida e as três respostas.
 
+> **Concluída em 10/10. Resultado** (fonte: `Registro MMC (4).xlsx`, aba Report):
+>
+> | Termo do roteiro | Na Schulz | Onde está |
+> |---|---|---|
+> | Ponto de ensaio | Characteristic | coluna A |
+> | Leituras | Actual — duas por ponto, em dois blocos de linhas | B14:B27 (1ª) e B29:B42 (2ª) |
+> | Valor padrão de referência | Nominal | coluna C |
+> | LEA | Upper Tol | coluna D |
+>
+> **Decisões:**
+> - **D-T04-1 · Fronteira:** `|E| ≤ LEA` é `DENTRO_DA_TOLERANCIA` (o limite ainda faz parte
+>   da margem de tolerância).
+> - **D-T04-2 · Tipos de tolerância aceitos:** bilateral simétrica (Tol− = −Tol+) e unilateral
+>   (Tol− = 0, características geométricas: planicidade, entre centros, posição). Em ambas,
+>   LEA = Tol+ e a mesma regra `|E| ≤ LEA` vale, sem ramificação por nominal. Qualquer outra
+>   combinação (assimétrica) é rejeitada na ingestão como fora do escopo do MVP.
+> - **D-T04-3 · Leitura negativa em característica unilateral:** erro de medida. É dado de
+>   entrada inválido, então a planilha é rejeitada na ingestão com linha e coluna (T13);
+>   não vira um terceiro status, porque o roteiro só admite os dois.
+> - **D-T04-4 · Coluna Deviation ignorada:** não bate com Actual em A14 e A25; o erro é sempre
+>   calculado a partir de Actual.
+> - **D-T04-5 · Posições fora da tolerância (PV-02):** as seis características de POSIÇÃO
+>   medem entre 0,132 e 0,959 para LEA 0,100, e o certificado emitido as imprime sem parecer.
+>   A regra do roteiro é aplicada como está, e o dado real resulta em `REPROVADO`. O relatório
+>   declara `[VALIDAR PV-02]` e apresenta isso como achado: o sistema revela uma não
+>   conformidade que o certificado atual não declara.
+> - **AN-17:** a formulação `|E| ≤ LEA` elimina o bug de sinal por construção (não há
+>   subtração de tolerância negativa).
+
 ---
 
 ### [ ] T05 · Escrever o contrato da planilha ★
@@ -210,7 +239,13 @@ que permite a outra pessoa criar um arquivo válido sem perguntar nada.
   A planilha real da Schulz está em **OOXML Strict**, e o suporte das bibliotecas a esse
   formato é limitado. Como a planilha sanitizada é do grupo (Tema 01), o contrato pode
   exigir o formato padrão. Registre isso como regra e como risco.
-- Regras de rejeição (cada uma vira um teste depois).
+- **Colunas de tolerância:** se o contrato trouxer só o LEA, o sistema perde a capacidade de
+  validar o tipo de tolerância (D-T04-2). Avalie trazer Tol+ e Tol− e derivar o LEA.
+- **Leituras:** no Registro MMC elas vêm em dois blocos de linhas. Decida o formato do
+  contrato: largo (uma linha por ponto, colunas Leitura1, Leitura2…) ou longo (uma linha por
+  leitura, agrupada pelo identificador). Justifique pensando em número variável de leituras.
+- Regras de rejeição (cada uma vira um teste depois). Incluir as da T04: tolerância
+  assimétrica e leitura negativa em característica unilateral.
 
 **Traga.** O contrato.
 
@@ -235,6 +270,9 @@ como `.xlsx` padrão), com identificadores fictícios:
 | `inv-texto.xlsx` | "abc" numa leitura | Rejeitado, mensagem cita linha e coluna |
 | `inv-vazia.xlsx` | Só o cabeçalho | Rejeitado (nenhum ponto) |
 | `inv-strict.xlsx` | Mesmo conteúdo de um caso ok, salvo como Strict | Rejeitado com mensagem clara |
+| `ok-unilateral.xlsx` | Tolerância unilateral (Tol− = 0), um dentro e um fora | `REPROVADO`, com o status certo por ponto |
+| `inv-assimetrica.xlsx` | Tol+ = 0,05 e Tol− = −0,02 | Rejeitado: tolerância fora do escopo |
+| `inv-negativa-unilateral.xlsx` | Leitura negativa em característica unilateral | Rejeitado: erro de medida, com linha e coluna |
 
 Para cada arquivo `ok-*`, calcule à mão (numa folha ou calculadora) a média, o erro e o
 status de cada ponto. Esses números são o **oráculo** dos testes da fase 2.
@@ -507,7 +545,8 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 7. Rastreabilidade: item do roteiro → RF/RN da AV01 → classe → teste.
 8. Limitações e próximos passos: incerteza, k e veff (R-46 a R-50), PDF do certificado,
    autenticação, nuvem.
-9. Premissas `[PREMISSA]` e pontos `[VALIDAR]`.
+9. Premissas `[PREMISSA]` e pontos `[VALIDAR]`, incluindo o achado das posições
+   (D-T04-5, `[VALIDAR PV-02]`) e a inconsistência da coluna Deviation (D-T04-4).
 10. Link do repositório.
 
 **Traga.** O sumário e uma seção por vez, se quiser revisão.
@@ -532,10 +571,10 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 | Tarefa | Responsável | Status | Observação |
 |---|---|---|---|
 | T00 | Rodrigo | Concluída | Prazo 15/10; Item 2 ignorado até resposta |
-| T01 | | | |
-| T02 | | | |
+| T01 | Rodrigo | Concluída | D-011 em decisoes.md |
+| T02 | Rodrigo | Concluída | D-012 em decisoes.md |
 | T03 | | | |
-| T04 | | | |
+| T04 | Rodrigo | Concluída | Mapeamento + decisões D-T04-1 a 5 |
 | T05 | | | |
 | T06 | | | |
 | T07 | | | |
