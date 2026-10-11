@@ -90,6 +90,8 @@ interface (AV04), esta entrega usa o mínimo possível de dependências e manté
 de responsabilidades entre as entregas. Para arquivos muito extensos, com milhões de linhas,
 essa arquitetura deixaria de ser adequada; para o volume do projeto, ela é suficiente.
 
+Emenda 10/10: Spring Boot 4.1 (a linha 3.x saiu do suporte gratuito em 30/06/2026)
+
 ## D-012 — Núcleo de cálculo independente do Spring
 **Data:** 10/10/2026 · **Origem:** grupo · **Status:** Vigente
 

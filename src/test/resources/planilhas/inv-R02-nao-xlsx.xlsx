@@ -1,0 +1,4 @@
+Caracteristica;ValorReferencia;Leitura1;Leitura2;ToleranciaSuperior;ToleranciaInferior
+Diâmetro eixo;4.12;4.13;4.14;0.03;-0.03
+Comprimento eixo;10.8;10.807;10.811;0.02;-0.02
+Largura base;0.9288;0.9286;0.9290;0.007;-0.007

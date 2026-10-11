@@ -146,7 +146,12 @@ argumento de "coerência arquitetural" do relatório.
 
 ---
 
-### [ ] T03 · Preparar o repositório para ficar público 🔒 ★
+### [x] T03 · Preparar o repositório para ficar público 🔒 ★
+
+> **Concluída em 10/10.** Histórico reiniciado (branch órfã + repositório recriado) para
+> retirar a AV01, que tinha dados pessoais. `.gitignore` bloqueia `*.xlsx` fora de
+> `src/test/resources/planilhas/`, `src/test/resources/local/`, `docs/av01/` e roteiros.
+> O repositório só fica público na T19.
 
 **Conceito.** Tornar público um repositório expõe **todo o histórico**, não só a versão
 atual. Um arquivo removido num commit continua acessível nos commits antigos.
@@ -223,7 +228,10 @@ cada termo significa no caso real.
 
 ---
 
-### [ ] T05 · Escrever o contrato da planilha ★
+### [x] T05 · Escrever o contrato da planilha ★
+
+> **Concluída em 10/10.** `docs/av03/contrato-planilha.md`: aba `Medicoes`, formato largo,
+> Tol+ e Tol− na entrada com LEA derivado, só `.xlsx` Transitional, regras de rejeição R01–R15.
 
 **Conceito.** A AV02 deixou explícito: *"O layout exato de abas e colunas é fixado como
 contrato na Entrega 03 [PREMISSA]"*. Esta tarefa fecha essa premissa. Contrato bom é aquele
@@ -258,21 +266,37 @@ público (LGPD, RA-11) e permitem desenhar casos que talvez não existam nos dad
 como o ponto exatamente no limite.
 
 **Faça.** Em `src/test/resources/planilhas/`, crie no Excel ou no LibreOffice (salvando
-como `.xlsx` padrão), com identificadores fictícios:
+como `.xlsx` padrão), com identificadores fictícios e os **cabeçalhos exatos do contrato**.
+Os inválidos levam o código da regra no nome, para rastrear regra → arquivo → teste (T13).
 
-| Arquivo | Cenário | Resultado esperado |
-|---|---|---|
-| `ok-aprovado.xlsx` | Todos os pontos dentro | `APROVADO` |
-| `ok-reprovado.xlsx` | Um ponto fora | `REPROVADO` |
-| `ok-limite.xlsx` | \|E\| = LEA exatamente | Conforme decisão da T04 |
-| `ok-erro-negativo.xlsx` | Média abaixo da referência, ainda dentro | `APROVADO` (testa o `abs`) |
-| `inv-sem-coluna.xlsx` | Falta a coluna LEA | Rejeitado, mensagem cita a coluna |
-| `inv-texto.xlsx` | "abc" numa leitura | Rejeitado, mensagem cita linha e coluna |
-| `inv-vazia.xlsx` | Só o cabeçalho | Rejeitado (nenhum ponto) |
-| `inv-strict.xlsx` | Mesmo conteúdo de um caso ok, salvo como Strict | Rejeitado com mensagem clara |
-| `ok-unilateral.xlsx` | Tolerância unilateral (Tol− = 0), um dentro e um fora | `REPROVADO`, com o status certo por ponto |
-| `inv-assimetrica.xlsx` | Tol+ = 0,05 e Tol− = −0,02 | Rejeitado: tolerância fora do escopo |
-| `inv-negativa-unilateral.xlsx` | Leitura negativa em característica unilateral | Rejeitado: erro de medida, com linha e coluna |
+| Arquivo | Regra | Cenário | Resultado esperado |
+|---|---|---|---|
+| `ok-aprovado.xlsx` | — | Todos os pontos dentro | `APROVADO` |
+| `ok-reprovado.xlsx` | — | Um ponto fora entre vários | `REPROVADO` |
+| `ok-limite.xlsx` | D-T04-1 | \|E\| = LEA exatamente | `DENTRO_DA_TOLERANCIA` |
+| `ok-erro-negativo.xlsx` | — | Média abaixo da referência, ainda dentro | `APROVADO` (testa o `abs`) |
+| `ok-unilateral.xlsx` | D-T04-2 | Tol− = 0, um ponto dentro e um fora | `REPROVADO`, status certo por ponto |
+| `inv-R02-nao-xlsx.xlsx` | R02 | Arquivo de texto (ex.: CSV) renomeado para `.xlsx` | Rejeitado |
+| `inv-R03-strict.xlsx` | R03 | Conteúdo de `ok-aprovado` salvo como Strict | Rejeitado com mensagem clara |
+| `inv-R04-sem-aba.xlsx` | R04 | Aba com outro nome | Rejeitado |
+| `inv-R05-sem-tolsup.xlsx` | R05 | Falta a coluna `ToleranciaSuperior` | Rejeitado, mensagem cita a coluna |
+| `inv-R06-uma-leitura.xlsx` | R06 | Só `Leitura1` | Rejeitado |
+| `inv-R07-desvio.xlsx` | R07 | Coluna `Desvio` presente | Rejeitado |
+| `inv-R08-vazia.xlsx` | R08 | Só o cabeçalho | Rejeitado (nenhum ponto) |
+| `inv-R10-obrigatorio.xlsx` | R10 | Célula obrigatória vazia | Rejeitado, linha e coluna |
+| `inv-R11-texto.xlsx` | R11 | "abc" numa leitura | Rejeitado, linha e coluna |
+| `inv-R12-repetida.xlsx` | R12 | Característica repetida | Rejeitado, as duas linhas |
+| `inv-R13-tolsup-zero.xlsx` | R13 | `ToleranciaSuperior` = 0 | Rejeitado |
+| `inv-R14-assimetrica.xlsx` | R14 | Tol+ = 0,05 e Tol− = −0,02 | Rejeitado: fora do escopo |
+| `inv-R15-negativa-unilateral.xlsx` | R15 | Leitura negativa com Tol− = 0 | Rejeitado, linha e coluna |
+| `inv-multiplos-erros.xlsx` | R10, R11, R14 | Um erro de linha diferente em três linhas | Os três erros devolvidos juntos |
+
+R01 (5 MB) e R09 (10 mil linhas) não viram arquivo versionado: o conteúdo é gerado no próprio
+teste (T13/T15).
+
+🔒 **Metadados.** O LibreOffice e o Excel gravam o nome do autor em `docProps/core.xml`.
+Desative os dados do usuário antes de salvar (LibreOffice: Arquivo > Propriedades, desmarcar
+"Aplicar dados do usuário") e confira com `unzip -p arquivo.xlsx docProps/core.xml`.
 
 Para cada arquivo `ok-*`, calcule à mão (numa folha ou calculadora) a média, o erro e o
 status de cada ponto. Esses números são o **oráculo** dos testes da fase 2.
@@ -284,7 +308,16 @@ referência, LEA, média, erro, status).
 
 ## Fase 2 — Núcleo de cálculo (Java puro, com TDD)
 
-### [ ] T07 · Esqueleto do projeto ★
+### [x] T07 · Esqueleto do projeto ★
+
+> **Concluída em 10/10.** Montado à mão: Spring Boot **4.1** (a linha 3.x saiu do suporte
+> gratuito em 30/06/2026; emenda na D-011), Java 17, starters `webmvc`, `validation` e
+> `webmvc-test`, Maven Wrapper. Pacote-base `br.senai_pa3`, com `package-info.java` em cada
+> subpacote. `contextLoads` verde.
+>
+> **Boot 4 vs. tutoriais antigos:** `spring-boot-starter-web` virou `-webmvc`; cada tecnologia
+> tem o seu starter de teste; `@SpringBootTest` sozinho não configura mais o MockMvc
+> (precisa de `@AutoConfigureMockMvc`).
 
 **Faça.**
 - Gere o projeto no Spring Initializr: Java 17, Maven, Spring Boot 3.x, dependências
@@ -314,7 +347,9 @@ crie sempre a partir de `String` (`new BigDecimal("0.1")`, nunca `new BigDecimal
 compare com `compareTo`, não com `equals` (`2.0` e `2.00` não são `equals`).
 
 **Faça.** Desenhe (primeiro no papel, depois em código):
-- `record PontoEnsaio(String id, BigDecimal valorReferencia, BigDecimal lea, List<BigDecimal> leituras)`
+- `record PontoEnsaio(String caracteristica, BigDecimal valorReferencia, BigDecimal tolSuperior, BigDecimal tolInferior, List<BigDecimal> leituras)`,
+  com `lea()` **derivado** (LEA = Tol+), não como campo. Atenção à diferença entre `> 0`
+  (Tol+, R13) e `>= 0` (leitura em característica unilateral, R15).
 - `record ResultadoPonto(...)`: o que precisa carregar para a tela e o relatório?
 - `enum StatusPonto { DENTRO_DA_TOLERANCIA, FORA_DA_TOLERANCIA }`
 - `enum Parecer { APROVADO, REPROVADO }`
@@ -420,7 +455,8 @@ motivo.
 
 **Faça.**
 - `PlanilhaInvalidaException` carregando uma lista de `ErroValidacao(linha, coluna, motivo)`.
-- Cubra os arquivos `inv-*` da T06.
+- Cubra os arquivos `inv-*` da T06: um teste por regra R01–R15 do contrato, com o código da
+  regra no nome do teste.
 - Limites de segurança:
   - tamanho máximo do upload (`spring.servlet.multipart.max-file-size`);
   - número máximo de linhas processadas;
@@ -573,11 +609,11 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 | T00 | Rodrigo | Concluída | Prazo 15/10; Item 2 ignorado até resposta |
 | T01 | Rodrigo | Concluída | D-011 em decisoes.md |
 | T02 | Rodrigo | Concluída | D-012 em decisoes.md |
-| T03 | | | |
+| T03 | Rodrigo | Concluída | Histórico reiniciado; público só na T19 |
 | T04 | Rodrigo | Concluída | Mapeamento + decisões D-T04-1 a 5 |
-| T05 | | | |
+| T05 | Rodrigo | Concluída | contrato-planilha.md, R01–R15 |
 | T06 | | | |
-| T07 | | | |
+| T07 | Rodrigo | Concluída | Boot 4.1, pacote br.senai_pa3 |
 | T08 | | | |
 | T09 | | | |
 | T10 | | | |
