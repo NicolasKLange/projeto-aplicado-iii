@@ -105,3 +105,15 @@ mais robusta. O meio do processo é o mesmo nos dois cenários; mudam as pontas.
 o arquivo chega por requisição HTTP no Spring Boot ou pelo evento do S3 na Lambda. Na saída,
 o Spring devolve o resultado como resposta HTTP para exibição no navegador, enquanto na
 Lambda um adaptador de saída grava os dados no DynamoDB e aciona a `fn-certificado`.
+
+## D-013 — Limite de descompactação do .xlsx no código (ZipSecureFile)
+**Data:** 11/10/2026 · **Origem:** grupo · **Status:** Vigente
+
+O `.xlsx` é um zip; o POI carrega a aba inteira na memória (DOM). Os padrões do `ZipSecureFile`
+recusam taxa de compressão acima de 100×, mas aceitam até 4 GB por entrada: com a R01 (5 MB),
+uma entrada ainda poderia chegar a ~500 MB de XML. O `LeitorPlanilhaPoi` fixa, num bloco
+`static`, 50 MB por entrada. Medição: a maior planilha que o contrato aceita (10 mil linhas,
+5 leituras) gera ~4,2 MB de XML na aba, mais de 10× abaixo do limite. A configuração é global
+na JVM, sem conflito porque só o leitor usa o POI. Arquivo acima do limite cai na R02 (o POI
+lança `IOException`, sem tipo próprio). Registrar só no relatório foi descartado: documenta o
+risco, mas não protege o heap.

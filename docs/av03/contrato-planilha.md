@@ -16,6 +16,8 @@ A aba se chamará `Medicoes` — outras abas, se houver, serão ignoradas.
 | ToleranciaSuperior | número | mm | sim | maior que zero; ver §5 |
 | ToleranciaInferior | número | mm | sim | ver §5 |
 
+Colunas numéricas exigem célula do tipo **Número** no Excel. Texto que parece número (ex.: `"10,03"` digitado como texto) é rejeitado pela R11, sem conversão: o separador decimal seria ambíguo (`"1.003"` pode ser 1,003 ou 1003). Fórmulas também não são aceitas, nem com valor em cache: valor calculado não entra (mesmo princípio da D-T04-4), e o cache pode estar desatualizado ou ausente.
+
 Planilhas com a coluna Desvio serão rejeitadas: valor calculado não é aceito na entrada (D-T04-4).
 
 ## 4. Leituras
@@ -35,7 +37,7 @@ Erros de arquivo e de estrutura interrompem a validação na hora, porque sem a 
 **Arquivo**
 
 - R01 — Arquivo maior que 5 MB: "O arquivo excede o limite de 5 MB."
-- R02 — Formato de arquivo diferente de xlsx: "O arquivo não está em formato xlsx. Salve como 'Pasta de Trabalho do Excel (.xlsx)'."
+- R02 — Formato de arquivo diferente de xlsx, verificado pelo conteúdo (*magic number*), não pela extensão; inclui arquivo vazio, xlsx corrompido ou cortado e entrada do zip acima de 50 MB descompactada (D-013): "O arquivo não está em formato xlsx. Salve como 'Pasta de Trabalho do Excel (.xlsx)'."
 - R03 — Formato de arquivo Strict: "O arquivo está em formato OOXML Strict. Salve como 'Pasta de Trabalho do Excel (.xlsx)'."
 
 **Estrutura**
@@ -45,16 +47,28 @@ Erros de arquivo e de estrutura interrompem a validação na hora, porque sem a 
 - R06 — Menos de duas colunas Leitura*: "A planilha fornecida não contém duas séries de medições com cabeçalho Leitura* (Leitura1, Leitura2)."
 - R07 — Planilha com coluna Desvio: "A planilha contém a coluna Desvio, que não é utilizada neste cálculo. Remova a coluna e carregue novamente o arquivo."
 - R08 — Planilha sem linhas de dados: "A planilha fornecida não contém dados."
-- R09 — Mais de 10 mil linhas: "A planilha excede o limite de 10 mil linhas."
+- R09 — Mais de 10 mil linhas de dados não vazias: "A planilha excede o limite de 10 mil linhas."
 
 **Linha** (todas coletadas)
 
 - R10 — Item obrigatório não preenchido: "Linha {n}, coluna {coluna}: valor obrigatório ausente."
-- R11 — Dado numérico inválido: "Linha {n}, coluna {coluna}: '{valor}' não é um número válido."
+- R11 — Dado numérico inválido (texto, booleano, erro): "Linha {n}, coluna {coluna}: '{valor}' não é um número válido." Fórmula: "Linha {n}, coluna {coluna}: contém fórmula; digite o valor medido."
 - R12 — Característica repetida: "Característica '{nome}' repetida nas linhas {n1} e {n2}."
 - R13 — Tolerância superior zero ou negativa: "Linha {n} ('{nome}'): a tolerância superior precisa ser maior que zero."
 - R14 — Tolerância fora dos dois casos da §5: "Linha {n} ('{nome}'): tolerância +{sup}/{inf} fora do escopo do MVP — aceitas: bilateral simétrica ou unilateral."
 - R15 — Leitura negativa em característica unilateral: "Linha {n} ('{nome}'): leitura negativa em característica unilateral — verifique a medição."
+
+### Como os erros de linha são coletados
+
+| Ponto | Regra |
+|---|---|
+| Ordem dos erros numa linha | Ordem das colunas do contrato: Caracteristica, ValorReferencia, Leituras, Tol+, Tol− |
+| Célula ausente ou inválida (R10/R11) | R13 a R15 não são verificadas nessa linha, porque precisam de todos os valores; a R12 é verificada mesmo assim |
+| Dependência entre R13, R14 e R15 | R13 encerra a linha; se a R14 falhar, a R15 não é verificada (só faz sentido em unilateral) |
+| R12 | Erro na linha da repetição, coluna Caracteristica; a mensagem cita as duas linhas |
+| R14 | Coluna ToleranciaInferior; valores com ponto (`+0.05/-0.02`); formatação com vírgula fica para a tela |
+| R15 | Um erro por leitura negativa, na coluna da leitura |
+| Linha vazia | Linha sem nada nas colunas do cabeçalho é pulada (sobra de formatação) e não conta na R09; se nenhuma linha sobrar, R08 |
 
 ## 7. Exemplo (dados fictícios)
 

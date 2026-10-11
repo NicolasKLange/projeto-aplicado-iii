@@ -414,7 +414,19 @@ comportamento antes da implementação.
 
 ---
 
-### [ ] T10 · Classificação por ponto e parecer final ★
+### [x] T10 · Classificação por ponto e parecer final ★
+
+> **Concluída em 11/10.** `ResultadoPontoTest` (8 casos, incluindo um passo acima da fronteira,
+> `10.0800000001`) e `ResultadoCalibracaoTest` (todos dentro, um fora, lista vazia), com a média do
+> oráculo e sem calculadora; fixtures comuns em `Pontos.java`. Como a implementação já existia (T08),
+> o vermelho veio de **mutação manual**:
+>
+> | Mutação | Testes que falham |
+> |---|---|
+> | `<= 0` → `< 0` | fronteiras positiva e negativa, `okLimite` |
+> | sem `.abs()` | `arredondamentoNegativo`, `okArredondamento` (só o caso negativo-e-fora pega) |
+> | `allMatch` → `anyMatch` | `umForaEntreVarios` + 3 cenários da calculadora |
+> | sem `isEmpty()` | só `listaVazia` — **a suíte da T09 sozinha não pegava** (aprovação silenciosa) |
 
 **Conceito: a armadilha da lista vazia.** Em Java, `Stream.empty().allMatch(...)` retorna
 `true`. Uma implementação ingênua de "aprovado se todos os pontos estão dentro" aprova uma
@@ -451,9 +463,19 @@ fica num arquivo local fora do Git.
 
 ## Fase 3 — Ingestão e API
 
-### [ ] T12 · Leitor de planilha (porta + adaptador) ★
+### [x] T12 · Leitor de planilha (porta + adaptador) ★
 
-**Conceito.** `LeitorPlanilha` é uma interface do domínio (porta):
+> **Concluída em 11/10.** POI `poi-ooxml` **5.5.1** (última estável em 11/10/2026). Teste de risco
+> (`PoiStrictTest`): o `XSSFWorkbook` recusa o arquivo real e o `inv-R03-strict` com
+> `POIXMLException: Strict OOXML isn't currently supported` — evidência da R03. No adaptador, a R03 usa
+> `OPCPackage.isStrictOoxmlFormat()`, sem depender do texto da mensagem. **Porta e adaptador em
+> `ingestao`** (a porta não expõe tipos do POI; o critério é a direção das dependências).
+> Cabeçalho por nome, `Leitura\d+`, `BigDecimal.valueOf(double)`, `DataFormatter` por chamada (não é
+> thread-safe; o leitor é singleton na T14). `LeitorPlanilhaPoiTest`: `ok-aprovado` campo a campo e os 7
+> `ok-*` de ponta a ponta (`@ParameterizedTest`) com o parecer do oráculo. Pendente para a T13: CSV
+> renomeado (`NotOfficeXmlFileException`, runtime) escapa do `catch`.
+
+**Conceito.** `LeitorPlanilha` é a porta (interface sem tipos do POI):
 `List<PontoEnsaio> ler(InputStream)`. `LeitorPlanilhaPoi` é a implementação (adaptador).
 Trocar POI por CSV, ou por exportação nativa do Calypso (PV-08), não toca no cálculo.
 
@@ -645,9 +667,9 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 | T07 | Rodrigo | Concluída | Boot 4.1, pacote br.senai_pa3 |
 | T08 | Rodrigo | Concluída | Status, erro e parecer derivados nos records |
 | T09 | Rodrigo | Concluída | Escala 10, HALF_EVEN; vermelho da dízima registrado |
-| T10 | | | |
+| T10 | Rodrigo | Concluída | Mutação manual; lista vazia só pega com teste próprio |
 | T11 | | | |
-| T12 | | | |
+| T12 | Rodrigo | Concluída | POI 5.5.1; Strict recusado; porta em ingestao |
 | T13 | | | |
 | T14 | | | |
 | T15 | | | |
