@@ -259,7 +259,13 @@ que permite a outra pessoa criar um arquivo válido sem perguntar nada.
 
 ---
 
-### [ ] T06 · Criar as planilhas sintéticas de teste 🔒 ★
+### [x] T06 · Criar as planilhas sintéticas de teste 🔒 ★
+
+> **Concluída em 10/10.** 21 arquivos em `src/test/resources/planilhas/` (7 `ok-*`, 14 `inv-*`),
+> gerados por `ferramentas/gerar_planilhas.py` (openpyxl + LibreOffice) e oráculo em
+> `docs/av03/oraculo-planilhas.md` (Decimal, precisão completa). `inv-R03-strict.xlsx` salvo no
+> Excel desktop, com metadados pessoais removidos. Além da tabela abaixo: `ok-arredondamento`
+> (arredondar antes de comparar aprovaria peça ruim) e `ok-tres-leituras` (dízima).
 
 **Conceito.** Dados sintéticos resolvem dois problemas de uma vez: liberam o repositório
 público (LGPD, RA-11) e permitem desenhar casos que talvez não existam nos dados reais,
@@ -338,7 +344,14 @@ referência, LEA, média, erro, status).
 
 ---
 
-### [ ] T08 · Modelar o domínio ★
+### [x] T08 · Modelar o domínio ★
+
+> **Concluída em 11/10.** `PontoEnsaio` valida no construtor compacto R10, R13, R14, R15 e mínimo
+> de 2 leituras (defesa em profundidade; `IllegalArgumentException`), com `List.copyOf` antes de
+> validar e `lea()` derivado. `ResultadoPonto(ponto, media)`: `erroSistematico()` e `status()`
+> são **derivados** (não há ponto fora marcado como dentro). `ResultadoCalibracao(pontos)`:
+> `parecer()` derivado; lista vazia rejeitada no construtor. Exibição: **5 casas fixas**, só na
+> tela/DTO; o domínio guarda precisão completa.
 
 **Conceito: `BigDecimal` ou `double`?** Em `double`, `0.1 + 0.2` dá `0.30000000000000004`.
 Numa comparação de fronteira (`|E| ≤ LEA`), esse resíduo pode reprovar uma peça boa.
@@ -382,7 +395,11 @@ comportamento antes da implementação.
 **Faça.**
 - `CalculadoraMetrologicaTest` em JUnit 5: um teste por linha da tabela acima e um por ponto
   do seu oráculo da T06.
-- Implemente `media(List<BigDecimal>)` e `erroSistematico(media, referencia)`.
+- Implemente `media(List<BigDecimal>)` (o erro já é derivado no `ResultadoPonto`, T08) e o
+  método que monta o `ResultadoCalibracao` a partir dos `PontoEnsaio`.
+- Escala da divisão: 10 casas. Com entradas de até 4 casas, |E| e LEA, quando diferentes,
+  distam ≥ 0,0001/n; o corte em 10⁻¹⁰ nunca inverte a decisão, e |E| = LEA é sempre exato.
+  Escolha e justifique o `RoundingMode`.
 - Divisão de `BigDecimal` sem `MathContext` lança `ArithmeticException` em dízimas
   (ex.: 10 / 3). Descubra isso escrevendo um teste com três leituras que gerem dízima.
 
@@ -402,7 +419,9 @@ evidência não pode virar aprovação.
 - Parecer com todos dentro → `APROVADO`; um fora entre vários → `REPROVADO`.
 - Lista vazia → o que acontece? (Decida: exceção? Esse caso nem chega aqui porque a
   ingestão rejeita antes? Defesa em profundidade sugere tratar nos dois lugares.)
-- Implemente `classificar(PontoEnsaio)` e `calcular(List<PontoEnsaio>)`.
+- Com o desenho da T08, `status()` e `parecer()` vivem nos records: os testes da T10 constroem
+  `ResultadoPonto` com a média do oráculo e conferem `status()`; `ResultadoCalibracao` com
+  vários pontos e confere `parecer()`; lista vazia → exceção do construtor.
 
 **Traga.** Testes + implementação + saída do `mvn test`.
 
@@ -438,6 +457,9 @@ no Maven Central antes de adicionar.
 - Leia a aba definida no contrato; localize as colunas **pelo cabeçalho**, não pela posição.
 - Estude `DataFormatter` e `CellType`: célula numérica, texto, fórmula (o valor em cache
   serve?) e vazia se comportam de forma diferente.
+- **`double` → `BigDecimal`:** o Excel grava 17 dígitos (`4.1399999999999997` para 4,14; visto no
+  `inv-R03-strict`). Use `BigDecimal.valueOf(double)`, nunca `new BigDecimal(double)`. Avalie se o
+  `DataFormatter` serve (ele formata pelo estilo da célula).
 - **Teste de risco, primeiro de tudo:** tente abrir a planilha real Strict localmente, num
   teste fora do Git. Registre o que o POI faz (exceção? qual?). Esse resultado vai para o
   relatório e justifica a regra do contrato.
@@ -612,9 +634,9 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 | T03 | Rodrigo | Concluída | Histórico reiniciado; público só na T19 |
 | T04 | Rodrigo | Concluída | Mapeamento + decisões D-T04-1 a 5 |
 | T05 | Rodrigo | Concluída | contrato-planilha.md, R01–R15 |
-| T06 | | | |
+| T06 | Rodrigo | Concluída | 21 planilhas + oráculo + gerador |
 | T07 | Rodrigo | Concluída | Boot 4.1, pacote br.senai_pa3 |
-| T08 | | | |
+| T08 | Rodrigo | Concluída | Status, erro e parecer derivados nos records |
 | T09 | | | |
 | T10 | | | |
 | T11 | | | |

@@ -30,6 +30,7 @@ venv/
 .idea/
 .vscode/
 *.iml
+.claude/
 
 # Segredos e credenciais
 .env
