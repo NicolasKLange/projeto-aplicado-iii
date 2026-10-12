@@ -569,7 +569,18 @@ motivo.
 
 ---
 
-### [ ] T15 · Tratamento global de erros 🔒 ★
+### [x] T15 · Tratamento global de erros 🔒 ★
+
+> **Concluída em 11/10.** `TratamentoErros` (`web`) estende `ResponseEntityExceptionHandler`: tudo sai como
+> `application/problem+json`. 400 `PlanilhaInvalidaException` com a propriedade `erros` (linha, coluna,
+> regra, mensagem); 400 sem a parte `arquivo` e 415 (com `Accept: multipart/form-data`) vêm da classe base;
+> 413 com "O arquivo excede o limite de 5 MB."; 500 com `id` (UUID) na resposta e stack trace só no log.
+> `max-file-size=5MB` (5 × 1024², o mesmo byte do `MAXIMO_BYTES` da R01), `max-request-size=6MB`; a R01 do
+> leitor fica como segunda barreira para a `fn-ingestao`. **Hash no serviço** (rastreabilidade): `Medidor`
+> (`DigestInputStream`) calcula SHA-256 e tamanho em streaming e registra no `finally`, inclusive em planilha
+> inválida; nunca o conteúdo nem o nome do arquivo. O MockMvc não aplica o limite do multipart: 413 provado
+> por `curl` (5 MB exatos → 400 R02; 5 MB + 1 → 413). Lacuna declarada: o 413 não gera linha de hash.
+> `ErroInesperadoTest` prova que um caminho plantado na exceção não vaza. Suíte: 68 verdes.
 
 **Conceito.** O Spring 6 traz `ProblemDetail` (RFC 9457): um formato padrão de erro em JSON.
 
@@ -707,7 +718,7 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 | T12    | Rodrigo     | Concluída | POI 5.5.1; Strict recusado; porta em ingestao                |
 | T13    | Rodrigo     | Concluída | R01–R15 no leitor; FileMagic, coleta de erros; D-013 (50 MB) |
 | T14 | Rodrigo | Concluída | Endpoint + DTO; números como número, 5 casas no DTO; 61 verdes |
-| T15    |             |           |                                                              |
+| T15 | Rodrigo | Concluída | ProblemDetail; 413 no mesmo byte da R01; SHA-256 no serviço; 68 verdes |
 | T16    |             |           |                                                              |
 | T17    |             |           |                                                              |
 | T18    |             |           |                                                              |
