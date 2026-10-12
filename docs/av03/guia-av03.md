@@ -460,6 +460,9 @@ evidência não pode virar aprovação.
 
 ### [ ] T11 · Caso de referência real ◇ 🔒
 
+> **Não feita (◇).** Ficou fora do prazo da AV03. O certificado 00091/2026 aparece no relatório só como
+> premissa a validar (PV-02, D-T04-5); o teste com os valores reais, se for feito, entra na AV04.
+
 **Objetivo.** Provar que o motor reproduz um certificado verdadeiro (00091/2026) e mostrar
 o "antes e depois" do AN-17: o valor que a planilha reprova indevidamente e o que o
 sistema calcula.
@@ -742,16 +745,19 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 
 ---
 
-### [ ] T21 · Revisão final ★
+### [x] T21 · Revisão final ★
 
-- [ ] Os quatro enums aparecem com os nomes exatos no código, na API e na tela
-- [ ] `mvn test` verde num clone limpo
-- [ ] Nenhum arquivo real da Schulz no histórico do Git
-- [ ] Repositório público e link no relatório
-- [ ] Todo item do roteiro tem evidência no relatório
-- [ ] Premissas declaradas (Item 2, se não houver resposta)
-- [ ] Revisão cruzada: quem escreveu uma seção não a revisa
-- [ ] PDF exportado com um dia de folga
+> **Concluída em 12/10.** PDF revisado pelo autor; relatório e repositório prontos para envio no AVA.
+
+- [x] Os quatro enums aparecem com os nomes exatos no código, na API e na tela (`StatusPonto`, `Parecer`,
+      DTOs, `app.js`; respostas em `evidencias/respostas/`)
+- [x] `mvn test` verde num clone limpo (T19: 71 testes, 1 pulado, o `PoiStrictTest` com a planilha real)
+- [x] Nenhum arquivo real da Schulz no histórico do Git (auditoria da T19)
+- [x] Repositório público e link no relatório (cabeçalho e seção final do `AV3_fonte.md`)
+- [x] Todo item do roteiro tem evidência no relatório (mapa da entrega: item → seção → CTs)
+- [x] Premissas declaradas (Item 2 como erro de numeração, sem resposta do docente: `[PREMISSA]`)
+- [ ] ~~Revisão cruzada: quem escreveu uma seção não a revisa~~ Não se aplica: entrega feita só pelo autor
+- [x] PDF exportado com um dia de folga (12/10, prazo 15/10)
 
 ---
 
@@ -770,7 +776,7 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 | T08    | Rodrigo     | Concluída | Status, erro e parecer derivados nos records                            |
 | T09    | Rodrigo     | Concluída | Escala 10, HALF_EVEN; vermelho da dízima registrado                     |
 | T10    | Rodrigo     | Concluída | Mutação manual; lista vazia só pega com teste próprio                   |
-| T11    |             |           |                                                                         |
+| T11    | Rodrigo     | Não feita | ◇ fora do prazo; caso 00091/2026 só como PV-02 no relatório             |
 | T12    | Rodrigo     | Concluída | POI 5.5.1; Strict recusado; porta em ingestao                           |
 | T13    | Rodrigo     | Concluída | R01–R15 no leitor; FileMagic, coleta de erros; D-013 (50 MB)            |
 | T14    | Rodrigo     | Concluída | Endpoint + DTO; números como número, 5 casas no DTO; 61 verdes          |
@@ -780,4 +786,4 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 | T18    | Rodrigo     | Concluída | 33 CTs, todos Passou; linha de base 86857e9; 71 verdes                  |
 | T19    | Rodrigo     | Concluída | README; clone limpo 71 testes (1 pulado); repositório público           |
 | T20    | Rodrigo     | Concluída | Relatório: fonte .md, DOCX no formato da AV2, PDF de 21 páginas         |
-| T21    |             |           |                                                                         |
+| T21    | Rodrigo     | Concluída | PDF revisado; revisão cruzada não se aplica (entrega individual)        |

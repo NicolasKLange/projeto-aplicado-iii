@@ -153,7 +153,7 @@ SHA-256 e o tamanho, para rastreabilidade.
 | ---- | ------------------------------------------------------- | ---------- | ------------ |
 | AV01 | Identificação do problema e levantamento de requisitos | 15/09/2026 | Entregue     |
 | AV02 | Arquitetura em nuvem                                    | 02/10/2026 | Entregue     |
-| AV03 | MVP parte 1 — aplicação transacional                    | 15/10/2026 | Em andamento |
+| AV03 | MVP parte 1 — aplicação transacional                    | 15/10/2026 | Entregue     |
 | AV04 | MVP parte 2 — web/mobile e validação                    | 29/10/2026 | —            |
 | AV05 | Documentação técnica do MVP e ROI                       | 19/11/2026 | —            |
 | AV06 | Pitch técnico-comercial                                 | 03/12/2026 | —            |
