@@ -2,6 +2,6 @@ $ curl -i -F arquivo=@ok-limite.xlsx http://localhost:8080/api/calibracoes/proce
 HTTP/1.1 200 
 Content-Type: application/json
 Content-Length: 373
-Date: Mon, 12 Oct 2026 02:16:29 GMT
+Date: Mon, 12 Oct 2026 02:33:37 GMT
 
 {"parecer":"APROVADO","pontos":[{"caracteristica":"Comprimento pino","leituras":[10.07,10.09],"valorReferencia":10.0,"media":10.08000,"erroSistematico":0.08000,"lea":0.08,"status":"DENTRO_DA_TOLERANCIA"},{"caracteristica":"Diâmetro bucha","leituras":[1.94,1.96],"valorReferencia":2.0,"media":1.95000,"erroSistematico":-0.05000,"lea":0.05,"status":"DENTRO_DA_TOLERANCIA"}]}

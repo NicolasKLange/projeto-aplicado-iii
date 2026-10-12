@@ -2,6 +2,6 @@ $ curl -i -F arquivo=@ok-arredondamento.xlsx http://localhost:8080/api/calibraco
 HTTP/1.1 200 
 Content-Type: application/json
 Content-Length: 389
-Date: Mon, 12 Oct 2026 02:16:29 GMT
+Date: Mon, 12 Oct 2026 02:33:37 GMT
 
 {"parecer":"REPROVADO","pontos":[{"caracteristica":"Diâmetro pino guia","leituras":[0.0604,0.0605],"valorReferencia":0.06,"media":0.06045,"erroSistematico":0.00045,"lea":0.00040,"status":"FORA_DA_TOLERANCIA"},{"caracteristica":"Diâmetro furo guia","leituras":[0.0595,0.0596],"valorReferencia":0.06,"media":0.05955,"erroSistematico":-0.00045,"lea":0.00040,"status":"FORA_DA_TOLERANCIA"}]}

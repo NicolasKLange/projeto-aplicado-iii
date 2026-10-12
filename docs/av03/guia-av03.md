@@ -634,7 +634,11 @@ por ponto e o parecer.
 
 ---
 
-### [ ] T17 · Persistir o processamento ◇
+### [-] T17 · Persistir o processamento ◇
+
+> **Decisão em 12/10: adiada para a AV04.** O roteiro da AV03 não pede persistência, e ela exigiria
+> dependências externas (Spring Data JPA + H2) a três dias da entrega. Idempotência por hash (RN-20)
+> vai para "próximos passos" no relatório; o SHA-256 já é calculado e registrado no log desde a T15.
 
 **Objetivo.** Reforçar o "transacional": cada processamento vira um registro consultável,
 com idempotência por hash (RN-20 da AV01: reenviar o mesmo arquivo não gera novo registro).
@@ -648,7 +652,19 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 
 ## Fase 4 — Evidências e relatório
 
-### [ ] T18 · Roteiro de testes e evidências ★
+### [x] T18 · Roteiro de testes e evidências ★
+
+> **Concluída em 12/10.** `docs/av03/evidencias.md`: 33 casos (CT-01 a CT-33), todos "Passou", com
+> Requisito (item do roteiro + regra/decisão; RNF-15 só na tela), Esperado (oráculo e contrato), Obtido
+> (valor lido no arquivo de evidência, nunca "igual ao esperado"), Resultado e Evidência. Blocos: 7 `ok-*`,
+> 14 `inv-*`, limites e protocolo (5 MB exatos → 400 R02; 5 MB + 1 → 413; 415; 400 sem a parte
+> `arquivo`), automatizados (R09, D-013, 500 sem vazamento, suíte com 71 verdes) e tela (resultado,
+> erros, 413, limpeza ao trocar de arquivo). **Linha de base única:** commit `86857e9`, sem alteração
+> local em `src/`; respostas da API e `./mvnw test` coletados de uma vez (11/10, 23:33). Respostas em
+> `evidencias/respostas/` (laço `curl` documentado no próprio arquivo), avulsas em `evidencias/*.txt`,
+> prints em `evidencias/tela/`. As 21 respostas foram conferidas contra o oráculo por script
+> independente (`Decimal`, 5 casas `HALF_EVEN`): nenhuma divergência. Durante a T18, o 400 sem a parte
+> `arquivo` saía com o detail padrão em inglês; corrigido no `TratamentoErros` (+1 teste).
 
 **Faça.** `docs/av03/evidencias.md` com uma linha por caso:
 
@@ -658,7 +674,7 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 
 - Inclua todos os arquivos da T06, os testes automatizados (print do `mvn test` ou do
   relatório do Surefire) e os prints da tela.
-- Guarde os prints em `evidencias/av03/`.
+- Guarde os prints em `docs/av03/evidencias/tela/`.
 
 **Traga.** A tabela preenchida.
 
@@ -734,8 +750,8 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 | T14    | Rodrigo     | Concluída | Endpoint + DTO; números como número, 5 casas no DTO; 61 verdes          |
 | T15    | Rodrigo     | Concluída | ProblemDetail; 413 no mesmo byte da R01; SHA-256 no serviço; 68 verdes  |
 | T16    | Rodrigo     | Concluída | HTML+CSS+JS puro; textContent; tela limpa e campo travado; 70 verdes    |
-| T17    |             |           |                                                                         |
-| T18    |             |           |                                                                         |
+| T17    | Rodrigo     | Adiada    | Persistência e idempotência (RN-20) ficam para a AV04                   |
+| T18    | Rodrigo     | Concluída | 33 CTs, todos Passou; linha de base 86857e9; 71 verdes                  |
 | T19    |             |           |                                                                         |
 | T20    |             |           |                                                                         |
 | T21    |             |           |                                                                         |

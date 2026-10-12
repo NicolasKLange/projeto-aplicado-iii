@@ -2,6 +2,6 @@ $ curl -i -F arquivo=@ok-unilateral.xlsx http://localhost:8080/api/calibracoes/p
 HTTP/1.1 200 
 Content-Type: application/json
 Content-Length: 533
-Date: Mon, 12 Oct 2026 02:16:29 GMT
+Date: Mon, 12 Oct 2026 02:33:37 GMT
 
 {"parecer":"REPROVADO","pontos":[{"caracteristica":"Planicidade base","leituras":[0.02,0.03],"valorReferencia":0.0,"media":0.02500,"erroSistematico":0.02500,"lea":0.05,"status":"DENTRO_DA_TOLERANCIA"},{"caracteristica":"Posição furo","leituras":[0.11,0.13],"valorReferencia":0.0,"media":0.12000,"erroSistematico":0.12000,"lea":0.1,"status":"FORA_DA_TOLERANCIA"},{"caracteristica":"Paralelismo face","leituras":[0.0,0.004],"valorReferencia":0.0,"media":0.00200,"erroSistematico":0.00200,"lea":0.01,"status":"DENTRO_DA_TOLERANCIA"}]}
