@@ -1,0 +1,7 @@
+$ curl -i -F arquivo=@ok-tres-leituras.xlsx http://localhost:8080/api/calibracoes/processamento
+HTTP/1.1 200 
+Content-Type: application/json
+Content-Length: 382
+Date: Mon, 12 Oct 2026 02:16:29 GMT
+
+{"parecer":"REPROVADO","pontos":[{"caracteristica":"Comprimento haste","leituras":[10.01,10.02,10.02],"valorReferencia":10.0,"media":10.01667,"erroSistematico":0.01667,"lea":0.02,"status":"DENTRO_DA_TOLERANCIA"},{"caracteristica":"Diâmetro haste","leituras":[1.0,1.0,1.01],"valorReferencia":1.0,"media":1.00333,"erroSistematico":0.00333,"lea":0.003,"status":"FORA_DA_TOLERANCIA"}]}

@@ -1,0 +1,7 @@
+$ curl -i -F arquivo=@ok-erro-negativo.xlsx http://localhost:8080/api/calibracoes/processamento
+HTTP/1.1 200 
+Content-Type: application/json
+Content-Length: 378
+Date: Mon, 12 Oct 2026 02:16:29 GMT
+
+{"parecer":"APROVADO","pontos":[{"caracteristica":"Diâmetro alojamento","leituras":[19.97,19.98],"valorReferencia":20.0,"media":19.97500,"erroSistematico":-0.02500,"lea":0.03,"status":"DENTRO_DA_TOLERANCIA"},{"caracteristica":"Espessura chapa","leituras":[3.49,3.49],"valorReferencia":3.5,"media":3.49000,"erroSistematico":-0.01000,"lea":0.02,"status":"DENTRO_DA_TOLERANCIA"}]}

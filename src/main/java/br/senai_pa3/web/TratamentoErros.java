@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import br.senai_pa3.ingestao.PlanilhaInvalidaException;
@@ -22,7 +23,7 @@ import br.senai_pa3.ingestao.PlanilhaInvalidaException;
  * Todo erro da API sai como {@link ProblemDetail} ({@code application/problem+json}, RFC 9457).
  * <p>
  * A classe base já trata o 400 sem a parte {@code arquivo}, o 415 e o 413; aqui só se troca a
- * mensagem do 415 e do 413. Detalhe técnico (exceção, stack trace, caminho) fica só no log.
+ * mensagem, que sairia em inglês. Detalhe técnico (exceção, stack trace, caminho) fica só no log.
  */
 @RestControllerAdvice
 public class TratamentoErros extends ResponseEntityExceptionHandler {
@@ -66,5 +67,13 @@ public class TratamentoErros extends ResponseEntityExceptionHandler {
             HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         ex.getBody().setDetail("Envie a planilha .xlsx como multipart/form-data, no campo 'arquivo'.");
         return super.handleHttpMediaTypeNotSupported(ex, headers, status, request);
+    }
+
+    /** 400 sem a parte {@code arquivo}: a tela sempre envia; quem vê é quem chama a API direto. */
+    @Override
+    protected ResponseEntity<Object> handleMissingServletRequestPart(MissingServletRequestPartException ex,
+            HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        ex.getBody().setDetail("Envie a planilha no campo 'arquivo' (multipart/form-data).");
+        return super.handleMissingServletRequestPart(ex, headers, status, request);
     }
 }

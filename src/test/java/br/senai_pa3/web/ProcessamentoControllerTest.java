@@ -113,6 +113,12 @@ class ProcessamentoControllerTest {
     }
 
     @Test
+    void semParteArquivo_detailEmPortugues() throws Exception {
+        mvc.perform(multipart(ROTA).file(new MockMultipartFile("outro", new byte[] { 1 })))
+                .andExpect(jsonPath("$.detail").value("Envie a planilha no campo 'arquivo' (multipart/form-data)."));
+    }
+
+    @Test
     void corpoJson_415() throws Exception {
         mvc.perform(post(ROTA).contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isUnsupportedMediaType())

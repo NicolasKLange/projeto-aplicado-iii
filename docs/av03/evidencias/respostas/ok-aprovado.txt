@@ -1,0 +1,7 @@
+$ curl -i -F arquivo=@ok-aprovado.xlsx http://localhost:8080/api/calibracoes/processamento
+HTTP/1.1 200 
+Content-Type: application/json
+Content-Length: 545
+Date: Mon, 12 Oct 2026 02:16:29 GMT
+
+{"parecer":"APROVADO","pontos":[{"caracteristica":"Diâmetro eixo","leituras":[4.13,4.14],"valorReferencia":4.12,"media":4.13500,"erroSistematico":0.01500,"lea":0.03,"status":"DENTRO_DA_TOLERANCIA"},{"caracteristica":"Comprimento eixo","leituras":[10.807,10.811],"valorReferencia":10.8,"media":10.80900,"erroSistematico":0.00900,"lea":0.02,"status":"DENTRO_DA_TOLERANCIA"},{"caracteristica":"Largura base","leituras":[0.9286,0.929],"valorReferencia":0.9288,"media":0.92880,"erroSistematico":0.00000,"lea":0.007,"status":"DENTRO_DA_TOLERANCIA"}]}
