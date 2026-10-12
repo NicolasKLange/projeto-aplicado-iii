@@ -1,0 +1,10 @@
+curl -F "arquivo=@src/test/resources/planilhas/ok-reprovado.xlsx" localhost:8080/api/calibracoes/processamento
+
+{
+    "parecer":"REPROVADO","pontos":[
+        {"caracteristica":"Diâmetro furo A","leituras":[6.01,6.02],"valorReferencia":6.0,"media":6.01500,"erroSistematico":0.01500,"lea":0.03,"status":"DENTRO_DA_TOLERANCIA"},
+        {"caracteristica":"Diâmetro furo B","leituras":[6.05,6.07],"valorReferencia":6.0,"media":6.06000,"erroSistematico":0.06000,"lea":0.03,"status":"FORA_DA_TOLERANCIA"},
+        {"caracteristica":"Altura flange","leituras":[25.39,25.41],"valorReferencia":25.4,"media":25.40000,"erroSistematico":0.00000,"lea":0.05,"status":"DENTRO_DA_TOLERANCIA"},
+        {"caracteristica":"Planicidade face","leituras":[0.012,0.014],"valorReferencia":0.0,"media":0.01300,"erroSistematico":0.01300,"lea":0.05,"status":"DENTRO_DA_TOLERANCIA"}
+    ]
+}
