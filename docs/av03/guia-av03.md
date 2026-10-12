@@ -685,6 +685,14 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 
 ### [ ] T19 · README e repositório público ★
 
+> **Auditoria do histórico em 12/10:** árvore limpa; autor único (e-mail noreply do GitHub); nenhuma
+> planilha real, `.xlsm`, AV01 ou roteiro em nenhum commit. Nomes dos colegas só como autoria
+> (`README.md`, `AV2_Grupo39_fonte.md` e DOCX/PDF da AV02, inclusive em `dc:creator`). O `git grep`
+> não lê `.docx`/`.pdf` compactados: o DOCX foi conferido por dentro. Arquivo de cookies `%s`
+> (`476b714`): só o cabeçalho do libcurl. `.claude/agents/claude.agent.md` (`35cbc0c`, apagado no
+> `76d7b82`): modelo vazio da extensão. **Sem reescrita do histórico.** Autoria: AV02 mantida como
+> entregue; D-001 a D-010 com origem "grupo", D-011 em diante "autor"; README só com o nome do autor.
+
 **Faça.**
 
 - README: o que é, como rodar (`mvn spring-boot:run`, endereço da tela), como rodar os

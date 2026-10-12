@@ -75,10 +75,10 @@ signatário diferente do técnico (RN-12). Se a empresa quiser emissão totalmen
 os dois passos se fundem por configuração.
 
 ## D-011 — Stack do MVP: Java 17 + Spring Boot 4.1 + Maven
-**Data:** 10/10/2026 · **Origem:** grupo · **Status:** Vigente
+**Data:** 10/10/2026 · **Origem:** autor · **Status:** Vigente
 
 Python e Node também atenderiam a esta solução. A escolha por Java se deve à familiaridade
-da equipe com a stack, o que reduz o risco no prazo da entrega, e ao `BigDecimal` nativo, que
+do autor com a stack, o que reduz o risco no prazo da entrega, e ao `BigDecimal` nativo, que
 dá controle total sobre a precisão e o arredondamento dos cálculos metrológicos; no Node,
 seria necessária uma biblioteca adicional para decimais. O Spring Boot fornece, sem
 dependências extras, upload de arquivos, API REST e a página estática da interface. O Maven,
@@ -93,7 +93,7 @@ essa arquitetura deixaria de ser adequada; para o volume do projeto, ela é sufi
 Emenda 10/10: Spring Boot 4.1 (a linha 3.x saiu do suporte gratuito em 30/06/2026)
 
 ## D-012 — Núcleo de cálculo independente do Spring
-**Data:** 10/10/2026 · **Origem:** grupo · **Status:** Vigente
+**Data:** 10/10/2026 · **Origem:** autor · **Status:** Vigente
 
 O núcleo — leitura da planilha e cálculo metrológico — é escrito em Java puro, sem importar
 nada do Spring. Rodar sem o framework evita carregar contexto, anotações e injeção de
@@ -107,7 +107,7 @@ o Spring devolve o resultado como resposta HTTP para exibição no navegador, en
 Lambda um adaptador de saída grava os dados no DynamoDB e aciona a `fn-certificado`.
 
 ## D-013 — Limite de descompactação do .xlsx no código (ZipSecureFile)
-**Data:** 11/10/2026 · **Origem:** grupo · **Status:** Vigente
+**Data:** 11/10/2026 · **Origem:** autor · **Status:** Vigente
 
 O `.xlsx` é um zip; o POI carrega a aba inteira na memória (DOM). Os padrões do `ZipSecureFile`
 recusam taxa de compressão acima de 100×, mas aceitam até 4 GB por entrada: com a R01 (5 MB),
