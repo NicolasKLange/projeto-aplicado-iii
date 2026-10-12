@@ -600,7 +600,21 @@ contrato tiver nome de técnico, ele não vai para o log.
 
 ---
 
-### [ ] T16 · Interface web ★
+### [x] T16 · Interface web ★
+
+> **Concluída em 11/10.** `static/index.html` + `estilo.css` + `app.js` (sem biblioteca; CSS e JS fora do HTML
+> para permitir CSP com `script-src 'self'`). `fetch` com `FormData` (campo `arquivo`, sem `Content-Type`
+> manual). A tela é limpa antes de cada envio, no `catch` e ao trocar de arquivo; durante o envio o botão
+> **e o campo de arquivo** ficam travados (sem isso, a resposta da planilha anterior apareceria sob o nome
+> da nova). Texto só por `textContent` (característica é texto livre: XSS). Status e parecer com o enum
+> exato + rótulo amigável + cor (contraste ≥ 4,5:1 documentado no CSS); enum desconhecido sai neutro.
+> Média e erro com 5 casas e vírgula (`Intl.NumberFormat`); leituras, referência e LEA com as casas que o
+> número trouxe. Erros: `detail` + tabela linha/coluna/regra/mensagem ("Geral" quando a linha é nula);
+> 500 mostra o `id`; corpo só é lido como JSON se o `content-type` disser JSON. `InterfaceWebTest`:
+> `/index.html` servido e `GET /` → `forwardedUrl("index.html")` (o MockMvc não segue o *forward*).
+> Limitações declaradas: mensagens do leitor com número em formato invariante (`+0.007`); `TypeError` de
+> montagem cai na mensagem de rede (melhoria futura). Prints: 413, `ok-reprovado`, `inv-multiplos-erros`.
+> Suíte: 70 verdes.
 
 **Objetivo.** O objetivo da entrega (seção 1 do roteiro, não um item numerado) pede os
 resultados e o parecer "numa interface limpa e intuitiva": enviar o arquivo, ver a tabela
@@ -719,7 +733,7 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 | T13    | Rodrigo     | Concluída | R01–R15 no leitor; FileMagic, coleta de erros; D-013 (50 MB)            |
 | T14    | Rodrigo     | Concluída | Endpoint + DTO; números como número, 5 casas no DTO; 61 verdes          |
 | T15    | Rodrigo     | Concluída | ProblemDetail; 413 no mesmo byte da R01; SHA-256 no serviço; 68 verdes  |
-| T16    |             |           |                                                                         |
+| T16    | Rodrigo     | Concluída | HTML+CSS+JS puro; textContent; tela limpa e campo travado; 70 verdes    |
 | T17    |             |           |                                                                         |
 | T18    |             |           |                                                                         |
 | T19    |             |           |                                                                         |
