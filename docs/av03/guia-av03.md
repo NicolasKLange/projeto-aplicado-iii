@@ -711,7 +711,16 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 
 ---
 
-### [ ] T20 · Relatório em PDF ★
+### [x] T20 · Relatório em PDF ★
+
+> **Concluída em 12/10.** Fonte em `docs/av03/AV3_fonte.md` (pandoc, tabelas em grade, como na AV2), com 12
+> seções: as 10 abaixo, mais Interface web e Referências. Mapa da entrega (item do roteiro → seção → CTs),
+> Figura 1 nova (`diagramas/arquitetura-av03.png`, gerada por `arquitetura-av03.py`), prints `ok-reprovado` e
+> `inv-multiplos-erros`, matriz CT-01 a CT-33 condensada, achados A1–A16, rastreabilidade e premissas PV-24 a
+> PV-31 (PV-28: escala 10 vale para entradas com até 7 casas e menos de 2 000 leituras por ponto). Autoria só
+> do autor. DOCX com o DOCX da AV2 como `--reference-doc` e `ferramentas/formatar_docx.py` (corpo justificado,
+> tabelas a 100% em 8 pt, Figura 1 em página paisagem). PDF exportado pelo LibreOffice: 21 páginas, Noto
+> Serif, como a AV2. Conferido: só documentação mudou depois da linha de base `86857e9`.
 
 **Estrutura sugerida** (DOCX → PDF, como nas anteriores):
 
@@ -770,5 +779,5 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 | T17    | Rodrigo     | Adiada    | Adiada para a AV04 (D-014); linha de base da T18 mantida                |
 | T18    | Rodrigo     | Concluída | 33 CTs, todos Passou; linha de base 86857e9; 71 verdes                  |
 | T19    | Rodrigo     | Concluída | README; clone limpo 71 testes (1 pulado); repositório público           |
-| T20    |             |           |                                                                         |
+| T20    | Rodrigo     | Concluída | Relatório: fonte .md, DOCX no formato da AV2, PDF de 21 páginas         |
 | T21    |             |           |                                                                         |
