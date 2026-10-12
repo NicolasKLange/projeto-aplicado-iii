@@ -683,7 +683,13 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 
 ---
 
-### [ ] T19 · README e repositório público ★
+### [x] T19 · README e repositório público ★
+
+> **Concluída em 12/10.** README reescrito (o que faz, requisitos, como rodar e testar, API com
+> exemplo e códigos, planilhas, estrutura, LGPD, limitações, entregas), só com o nome do autor.
+> Clone limpo seguindo só o README: `Tests run: 71, Failures: 0, Errors: 0, Skipped: 1` (o pulado é
+> o `PoiStrictTest` com a planilha real, fora do Git) e tela funcionando com `ok-reprovado.xlsx`.
+> Repositório público: <https://github.com/rmainardes/projeto-aplicado-iii>.
 
 > **Auditoria do histórico em 12/10:** árvore limpa; autor único (e-mail noreply do GitHub); nenhuma
 > planilha real, `.xlsm`, AV01 ou roteiro em nenhum commit. Nomes dos colegas só como autoria
@@ -763,6 +769,6 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 | T16    | Rodrigo     | Concluída | HTML+CSS+JS puro; textContent; tela limpa e campo travado; 70 verdes    |
 | T17    | Rodrigo     | Adiada    | Adiada para a AV04 (D-014); linha de base da T18 mantida                |
 | T18    | Rodrigo     | Concluída | 33 CTs, todos Passou; linha de base 86857e9; 71 verdes                  |
-| T19    |             |           |                                                                         |
+| T19    | Rodrigo     | Concluída | README; clone limpo 71 testes (1 pulado); repositório público           |
 | T20    |             |           |                                                                         |
 | T21    |             |           |                                                                         |
