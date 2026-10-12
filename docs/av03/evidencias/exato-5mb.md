@@ -1,3 +1,6 @@
+curl -i -H stat -c %s 'Expect:' -F "arquivo=@$HOME/teste-413/exato-5mb.xlsx" http://localhost:8080/api/cal
+ibracoes/processamento
+
 HTTP/1.1 400
 Content-Type: application/problem+json
 Transfer-Encoding: chunked
