@@ -13,9 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 import br.senai_pa3.aplicacao.ProcessamentoService;
 
 /**
- * Casca HTTP do processamento: recebe o upload e devolve o DTO. Erros de
- * planilha viram
- * resposta no advice da T15.
+ * Casca HTTP do processamento: recebe o upload e devolve o DTO. Erros viram
+ * {@code ProblemDetail} no {@link TratamentoErros}.
  */
 @RestController
 @RequestMapping("/api/calibracoes")

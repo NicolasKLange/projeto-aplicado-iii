@@ -544,7 +544,16 @@ motivo.
 
 ---
 
-### [ ] T14 · Endpoint de processamento ★
+### [x] T14 · Endpoint de processamento ★
+
+> **Concluída em 11/10.** `NucleoConfig` (`aplicacao`) cria os beans e devolve a porta `LeitorPlanilha`;
+> `ProcessamentoService` recebe `InputStream` (não conhece HTTP; reaproveitável na `fn-ingestao`).
+> `POST /api/calibracoes/processamento` (multipart, campo `arquivo`) em `web`; `REPROVADO` volta com 200.
+> DTOs `ResultadoCalibracaoDto` e `PontoDto` em `web` (pacote plano, limite de profundidade). **Números
+> como número JSON**; média e erro com `setScale(5, HALF_EVEN)` só no DTO; a T16 formata de novo, porque
+> o `JSON.parse` descarta os zeros. `ProcessamentoControllerTest`: `@WebMvcTest` + `@Import` do núcleo real
+> (sem mock), 4 testes; o `jsonPath` compara como `double`, então só o teste de texto cru prova a escala.
+> `curl` com `ok-reprovado` bate com o oráculo. Suíte: 61 verdes.
 
 **Faça.**
 
@@ -697,7 +706,7 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 | T11    |             |           |                                                              |
 | T12    | Rodrigo     | Concluída | POI 5.5.1; Strict recusado; porta em ingestao                |
 | T13    | Rodrigo     | Concluída | R01–R15 no leitor; FileMagic, coleta de erros; D-013 (50 MB) |
-| T14    |             |           |                                                              |
+| T14 | Rodrigo | Concluída | Endpoint + DTO; números como número, 5 casas no DTO; 61 verdes |
 | T15    |             |           |                                                              |
 | T16    |             |           |                                                              |
 | T17    |             |           |                                                              |

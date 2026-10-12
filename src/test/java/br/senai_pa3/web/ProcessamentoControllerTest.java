@@ -2,7 +2,9 @@ package br.senai_pa3.web;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -22,7 +25,10 @@ import br.senai_pa3.aplicacao.ProcessamentoService;
 
 /**
  * Endpoint de processamento (T14) com o núcleo real, contra o oráculo
- * (docs/av03/oraculo-planilhas.md). Os erros de planilha ficam para a T15.
+ * (docs/av03/oraculo-planilhas.md), e as respostas de erro do {@link TratamentoErros} (T15).
+ * <p>
+ * O 413 não está aqui: o {@code MockMultipartFile} não passa pelo parser do contêiner, então o
+ * limite do multipart não se aplica. A evidência do 413 é o {@code curl} com o servidor rodando.
  */
 @WebMvcTest(ProcessamentoController.class)
 @Import({ ProcessamentoService.class, NucleoConfig.class })
@@ -78,6 +84,41 @@ class ProcessamentoControllerTest {
                 .andExpect(jsonPath("$.pontos[1].media").value(1.00333))
                 .andExpect(jsonPath("$.pontos[1].erroSistematico").value(0.00333))
                 .andExpect(jsonPath("$.pontos[1].status").value("FORA_DA_TOLERANCIA"));
+    }
+
+    @Test
+    void planilhaInvalida_400ComTodosOsErros() throws Exception {
+        enviar("inv-multiplos-erros.xlsx")
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.detail").isString())
+                .andExpect(jsonPath("$.erros.length()").value(3))
+                .andExpect(jsonPath("$.erros[0].regra").value("R10"))
+                .andExpect(jsonPath("$.erros[0].linha").value(2))
+                .andExpect(jsonPath("$.erros[0].coluna").value("Leitura2"))
+                .andExpect(jsonPath("$.erros[1].regra").value("R11"))
+                .andExpect(jsonPath("$.erros[1].linha").value(3))
+                .andExpect(jsonPath("$.erros[2].regra").value("R14"))
+                .andExpect(jsonPath("$.erros[2].linha").value(4))
+                .andExpect(jsonPath("$.erros[2].mensagem").value(containsString("fora do escopo")));
+    }
+
+    @Test
+    void semParteArquivo_400() throws Exception {
+        mvc.perform(multipart(ROTA).file(new MockMultipartFile("outro", new byte[] { 1 })))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value(containsString("arquivo")));
+    }
+
+    @Test
+    void corpoJson_415() throws Exception {
+        mvc.perform(post(ROTA).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(header().string("Accept", MediaType.MULTIPART_FORM_DATA_VALUE))
+                .andExpect(jsonPath("$.detail").value(containsString("multipart/form-data")));
     }
 
     private ResultActions enviar(String arquivo) throws Exception {
