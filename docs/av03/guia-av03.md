@@ -701,27 +701,27 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 
 ## Registro de progresso
 
-| Tarefa | Responsável | Status    | Observação                                                   |
-| ------ | ----------- | --------- | ------------------------------------------------------------ |
-| T00    | Rodrigo     | Concluída | Prazo 15/10; Item 2 ignorado até resposta                    |
-| T01    | Rodrigo     | Concluída | D-011 em decisoes.md                                         |
-| T02    | Rodrigo     | Concluída | D-012 em decisoes.md                                         |
-| T03    | Rodrigo     | Concluída | Histórico reiniciado; público só na T19                      |
-| T04    | Rodrigo     | Concluída | Mapeamento + decisões D-T04-1 a 5                            |
-| T05    | Rodrigo     | Concluída | contrato-planilha.md, R01–R15                                |
-| T06    | Rodrigo     | Concluída | 21 planilhas + oráculo + gerador                             |
-| T07    | Rodrigo     | Concluída | Boot 4.1, pacote br.senai_pa3                                |
-| T08    | Rodrigo     | Concluída | Status, erro e parecer derivados nos records                 |
-| T09    | Rodrigo     | Concluída | Escala 10, HALF_EVEN; vermelho da dízima registrado          |
-| T10    | Rodrigo     | Concluída | Mutação manual; lista vazia só pega com teste próprio        |
-| T11    |             |           |                                                              |
-| T12    | Rodrigo     | Concluída | POI 5.5.1; Strict recusado; porta em ingestao                |
-| T13    | Rodrigo     | Concluída | R01–R15 no leitor; FileMagic, coleta de erros; D-013 (50 MB) |
-| T14 | Rodrigo | Concluída | Endpoint + DTO; números como número, 5 casas no DTO; 61 verdes |
-| T15 | Rodrigo | Concluída | ProblemDetail; 413 no mesmo byte da R01; SHA-256 no serviço; 68 verdes |
-| T16    |             |           |                                                              |
-| T17    |             |           |                                                              |
-| T18    |             |           |                                                              |
-| T19    |             |           |                                                              |
-| T20    |             |           |                                                              |
-| T21    |             |           |                                                              |
+| Tarefa | Responsável | Status    | Observação                                                              |
+| ------ | ----------- | --------- | ----------------------------------------------------------------------- |
+| T00    | Rodrigo     | Concluída | Prazo 15/10; Item 2 ignorado até resposta                               |
+| T01    | Rodrigo     | Concluída | D-011 em decisoes.md                                                    |
+| T02    | Rodrigo     | Concluída | D-012 em decisoes.md                                                    |
+| T03    | Rodrigo     | Concluída | Histórico reiniciado; público só na T19                                 |
+| T04    | Rodrigo     | Concluída | Mapeamento + decisões D-T04-1 a 5                                       |
+| T05    | Rodrigo     | Concluída | contrato-planilha.md, R01–R15                                           |
+| T06    | Rodrigo     | Concluída | 21 planilhas + oráculo + gerador                                        |
+| T07    | Rodrigo     | Concluída | Boot 4.1, pacote br.senai_pa3                                           |
+| T08    | Rodrigo     | Concluída | Status, erro e parecer derivados nos records                            |
+| T09    | Rodrigo     | Concluída | Escala 10, HALF_EVEN; vermelho da dízima registrado                     |
+| T10    | Rodrigo     | Concluída | Mutação manual; lista vazia só pega com teste próprio                   |
+| T11    |             |           |                                                                         |
+| T12    | Rodrigo     | Concluída | POI 5.5.1; Strict recusado; porta em ingestao                           |
+| T13    | Rodrigo     | Concluída | R01–R15 no leitor; FileMagic, coleta de erros; D-013 (50 MB)            |
+| T14    | Rodrigo     | Concluída | Endpoint + DTO; números como número, 5 casas no DTO; 61 verdes          |
+| T15    | Rodrigo     | Concluída | ProblemDetail; 413 no mesmo byte da R01; SHA-256 no serviço; 68 verdes  |
+| T16    |             |           |                                                                         |
+| T17    |             |           |                                                                         |
+| T18    |             |           |                                                                         |
+| T19    |             |           |                                                                         |
+| T20    |             |           |                                                                         |
+| T21    |             |           |                                                                         |

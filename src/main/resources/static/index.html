@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Certificado de calibração</title>
+  <!-- CSS e JS em arquivo próprio: uma CSP com script-src 'self' pode ser ligada sem 'unsafe-inline'. -->
+  <link rel="stylesheet" href="estilo.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main>
+    <h1>Certificado de calibração</h1>
+    <p class="secundario">Envie a planilha de ensaio (.xlsx) para calcular os pontos e o parecer.</p>
+
+    <form id="form-planilha" class="cartao">
+      <label for="arquivo">Planilha de ensaio (.xlsx, até 5 MB)</label>
+      <div class="linha-envio">
+        <!-- O accept só filtra a janela de escolha; quem valida o arquivo é o servidor. -->
+        <input type="file" id="arquivo" name="arquivo" accept=".xlsx" required>
+        <button type="submit" id="botao-enviar">Processar</button>
+      </div>
+    </form>
+
+    <p id="mensagem" class="mensagem" aria-live="polite"></p>
+
+    <section id="secao-parecer" class="parecer" aria-labelledby="titulo-parecer" hidden>
+      <h2 id="titulo-parecer">Parecer final</h2>
+      <p class="parecer-valor">
+        <span id="parecer-enum" class="enum"></span>
+        <span id="parecer-rotulo" class="rotulo"></span>
+      </p>
+    </section>
+
+    <section id="secao-tabela" class="cartao" hidden>
+      <div class="rolagem">
+        <table id="tabela-pontos">
+          <caption>Resultado por ponto de ensaio</caption>
+          <thead>
+            <tr>
+              <th scope="col">Ponto</th>
+              <th scope="col">Característica</th>
+              <th scope="col">Leituras</th>
+              <th scope="col" class="num">Média</th>
+              <th scope="col" class="num">Referência</th>
+              <th scope="col" class="num">Erro sistemático</th>
+              <th scope="col" class="num">LEA</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="secao-erros" class="cartao erros" aria-labelledby="titulo-erros" hidden>
+      <h2 id="titulo-erros">Erros encontrados na planilha</h2>
+      <div class="rolagem">
+        <table id="tabela-erros">
+          <caption>Corrija cada item e envie a planilha de novo</caption>
+          <thead>
+            <tr>
+              <th scope="col">Linha</th>
+              <th scope="col">Coluna</th>
+              <th scope="col">Regra</th>
+              <th scope="col">Mensagem</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
