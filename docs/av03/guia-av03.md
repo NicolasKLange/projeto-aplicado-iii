@@ -634,11 +634,14 @@ por ponto e o parecer.
 
 ---
 
-### [-] T17 · Persistir o processamento ◇
+### [ ] T17 · Persistir o processamento ◇
 
-> **Decisão em 12/10: adiada para a AV04.** O roteiro da AV03 não pede persistência, e ela exigiria
-> dependências externas (Spring Data JPA + H2) a três dias da entrega. Idempotência por hash (RN-20)
-> vai para "próximos passos" no relatório; o SHA-256 já é calculado e registrado no log desde a T15.
+> **Adiada para a AV04 em 12/10 (D-014).** Com o back-end pronto, a AV04 deve ser mais curta, e a
+> persistência entra direto no desenho da AV02 (DynamoDB, D-007) em vez de num H2 descartável. Sem
+> mudança de código, a linha de base da T18 (`86857e9`) continua válida. Pontos já levantados para a
+> AV04: idempotência por hash (o SHA-256 só existe depois da leitura; a unicidade é garantida no
+> banco, não no `SELECT`); id UUID; 404 e 400 (id malformado) em `problem+json`; nunca gravar nome
+> do arquivo nem conteúdo bruto; retenção de 5 anos (D-004).
 
 **Objetivo.** Reforçar o "transacional": cada processamento vira um registro consultável,
 com idempotência por hash (RN-20 da AV01: reenviar o mesmo arquivo não gera novo registro).
@@ -750,7 +753,7 @@ relatório). `GET /api/calibracoes/{id}` devolve o resultado salvo.
 | T14    | Rodrigo     | Concluída | Endpoint + DTO; números como número, 5 casas no DTO; 61 verdes          |
 | T15    | Rodrigo     | Concluída | ProblemDetail; 413 no mesmo byte da R01; SHA-256 no serviço; 68 verdes  |
 | T16    | Rodrigo     | Concluída | HTML+CSS+JS puro; textContent; tela limpa e campo travado; 70 verdes    |
-| T17    | Rodrigo     | Adiada    | Persistência e idempotência (RN-20) ficam para a AV04                   |
+| T17    | Rodrigo     | Adiada    | Adiada para a AV04 (D-014); linha de base da T18 mantida                |
 | T18    | Rodrigo     | Concluída | 33 CTs, todos Passou; linha de base 86857e9; 71 verdes                  |
 | T19    |             |           |                                                                         |
 | T20    |             |           |                                                                         |

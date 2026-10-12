@@ -74,7 +74,7 @@ O pipeline gera a minuta automaticamente; a emissão definitiva ocorre após apr
 signatário diferente do técnico (RN-12). Se a empresa quiser emissão totalmente automática,
 os dois passos se fundem por configuração.
 
-## D-011 — Stack do MVP: Java 17 + Spring Boot 3 + Maven
+## D-011 — Stack do MVP: Java 17 + Spring Boot 4.1 + Maven
 **Data:** 10/10/2026 · **Origem:** grupo · **Status:** Vigente
 
 Python e Node também atenderiam a esta solução. A escolha por Java se deve à familiaridade
@@ -117,3 +117,15 @@ uma entrada ainda poderia chegar a ~500 MB de XML. O `LeitorPlanilhaPoi` fixa, n
 na JVM, sem conflito porque só o leitor usa o POI. Arquivo acima do limite cai na R02 (o POI
 lança `IOException`, sem tipo próprio). Registrar só no relatório foi descartado: documenta o
 risco, mas não protege o heap.
+
+## D-014 — Persistência do processamento adiada para a AV04
+**Data:** 12/10/2026 · **Origem:** autor · **Status:** Vigente
+
+O roteiro da AV03 pede ingestão, cálculo, parecer, interface e evidências; não pede gravação do
+resultado. Persistir agora exigiria um banco local (H2) que não é o da arquitetura: a D-007 define
+DynamoDB, em que a unicidade fica na aplicação (itens-sentinela), e não numa restrição `UNIQUE`.
+A idempotência por hash (RN-20) seria implementada duas vezes, com mecanismos diferentes. Na AV04,
+com o back-end pronto, a persistência entra direto no desenho da D-007. Consequência: na AV03, cada
+requisição processa um arquivo de ponta a ponta (recebe, valida, calcula e responde) e nada é gravado
+além da linha de log com SHA-256 e tamanho (T15); o relatório declara a limitação. A linha de base
+das evidências da T18 continua válida, sem recoleta.
