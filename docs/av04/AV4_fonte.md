@@ -6,6 +6,15 @@
 
 ## 2. Decisões da entrega
 
+As decisões D-015 a D-020 (`docs/decisoes.md`, 24/10/2026) fecham o escopo da AV04 antes do código:
+
+- **D-015, Plataforma Web:** o público é o engenheiro no laboratório; a validação por QR Code do roteiro é uma página pública responsiva aberta pela câmera do celular (RF-16 da AV01).
+- **D-016, SPA em S3 privado + CloudFront com OAC:** HTTPS para a tela de login; o plano gratuito oferece 1 milhão de requisições e 100 GB/mês, sem cobrança de excedente (https://aws.amazon.com/cloudfront/pricing/, 24/10/2026). Descartados: Amplify Hosting e S3 com website público.
+- **D-017, Maven multimódulo (`nucleo`, `app-local`, `funcoes`):** o `nucleo` não declara o Spring, então o compilador garante a D-012; as funções Lambda levam só o núcleo e o SDK da AWS.
+- **D-018, recorte:** passos 1–7 e 10 do fluxo da AV02; ficam no roadmap TOTP, aprovação/RN-12, numeração com Object Lock e incerteza (R-46 a R-50). Mudanças técnicas: PUT pré-assinado no lugar do POST e rejeição registrada no DynamoDB no lugar de `quarentena/`.
+- **D-019, bibliotecas:** SDK da AWS v2, eventos do Lambda, PDFBox 3, ZXing `core`, React + Vite e SAM CLI.
+- **D-020, runtime `java21` com bytecode 17:** o `java17` (AL2) vai até 30/06/2027; `java21` (AL2023) até 30/06/2029 (https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html, 24/10/2026).
+
 ## 3. Arquitetura implementada
 
 ## 4. Persistência e idempotência
@@ -14,9 +23,15 @@
 
 ## 6. Roteiro de deploy na AWS
 
+**Pré-requisitos (T02, 24/10/2026).** AWS CLI v2.36.40, SAM CLI 1.170.0, Node v24.11.1 / npm 11.6.2 e JDK 21 (Temurin 21.0.10) instalados e conferidos. Credenciais só no perfil `pa3` do AWS CLI, com `AdministratorAccess` no usuário IAM da conta de estudo; `.gitignore` com `.aws-sam/` e `.claude/commands/` versionável.
+
+**Bloqueio encontrado.** Leituras de baixo risco (`lambda list-functions`, `dynamodb list-tables`, `cloudformation list-stacks`, `cognito-idp list-user-pools`) com o perfil `pa3` foram negadas em `sa-east-1` e `us-east-1` com *explicit deny in a service control policy* e funcionaram em `us-east-2`. O `describe-organization` mostrou que a conta é membro de uma AWS Organization com SCP ativa; o MFA da raiz e do usuário IAM não pôde ser configurado (IAM negado pela SCP; página de credenciais indisponível). Depois disso a conta original foi suspensa e uma segunda conta não obteve o plano gratuito, por cruzamento de dados de cadastro. Caso aberto no AWS Support; o deploy fica pendente da resposta. O back-end e o front-end são desenvolvidos e testados localmente, com a região como parâmetro dos templates.
+
 ## 7. Segurança e LGPD
 
 ## 8. Custo e Free Tier
+
+**Monitoramento (T02).** Dois orçamentos no AWS Budgets: A-1 *Zero spend budget* e A-2 de US$ 1,00/mês, ambos com alerta por e-mail (prints em `docs/av04/evidencias/tela/`, sem número de conta). Painel do plano gratuito em 24/10/2026: US$ 120,00 de créditos restantes e 129 dias, sem cobrança. Limitação: a conta foi suspensa depois dessa leitura; ver §6.
 
 ## 9. Evidências
 
@@ -26,4 +41,9 @@
 
 ## 12. Premissas e pontos a validar
 
+- **[PREMISSA]** O PDF do roteiro da AV04 pula da seção 2 para a 5. Perguntas ao professor enviadas em 24/10/2026 (seções 3 e 4 trazem requisitos? Plataforma Web com página pública de verificação por QR Code; vídeo "não listado" no YouTube). Sem resposta até a data. Na AV03 o professor já havia enviado arquivo com numeração errada, confirmado por mensagem, sem conteúdo nas seções faltantes; seguimos assumindo que não há requisitos além dos presentes no documento.
+- **[PREMISSA]** O plano gratuito do CloudFront aceita OAC? A página de preços não informa; confirmar na criação da distribuição (T10).
+
 ## Referências
+- **[PONTO A VALIDAR]** Região: a SCP da conta só permitiu `us-east-2`; a D-006 e a AV02 assumem `sa-east-1` (LGPD: sem transferência internacional). Decisão (D-021) adiada até a resposta do suporte AWS.
+- **[PONTO A VALIDAR]** MFA da raiz e do usuário IAM não configurado por restrição da conta; confirmar com o suporte.

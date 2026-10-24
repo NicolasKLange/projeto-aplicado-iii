@@ -93,7 +93,7 @@ adaptadores AWS), `web/` (React + Vite), `infra/` (template SAM e scripts de dep
 
 ## Fase 0 — Preparação e decisões
 
-### [ ] T00 · Perguntar ao professor o que falta no roteiro ★ 🧑‍🏫
+### [x] T00 · Perguntar ao professor o que falta no roteiro ★ 🧑‍🏫
 
 **Contexto.** Seção 1 deste guia. PDF `~/Faculdade/Projeto aplicado III/Entrega AV4 - Plataforma Web.pdf`.
 
@@ -109,9 +109,11 @@ relatório.
 
 **Aceite.** Mensagem enviada; data registrada na nota desta tarefa.
 
+> **Concluída em 24/10.** Perguntas enviadas ao professor em 24/10/2026; sem resposta até aqui. Na AV03 o professor já enviou arquivo com numeração de seções errada, confirmado por mensagem, sem conteúdo nas seções faltantes; por isso seguimos sem as seções 3 e 4 e as premissas da seção 1 viram `[PREMISSA]` no relatório (AV4_fonte §12).
+
 ---
 
-### [ ] T01 · Registrar as decisões D-015 a D-020 ★ 🧑‍🏫
+### [x] T01 · Registrar as decisões D-015 a D-020 ★ 🧑‍🏫
 
 **Contexto.** `docs/decisoes.md` (formato), seções 1 e 2 deste guia, `docs/av02/AV2_Grupo39_fonte.md`
 §1.2 e §3.2.
@@ -125,7 +127,7 @@ origem "autor" e status.
   revisão, PDF). A "validação por QR Code" do roteiro entra como página pública responsiva,
   aberta pela câmera do celular a partir do QR impresso no PDF (RF-16 da AV01).
 - **D-016 · Hospedagem da SPA: S3 privado + CloudFront com OAC.** A AV02 não definiu onde fica a
-  interface. CloudFront tem cota permanente (1 TB e 10 milhões de requisições/mês) e dá HTTPS,
+  interface. CloudFront tem plano gratuito (1 milhão de requisições e 100 GB/mês, sem excedente; conferido em 24/10) e dá HTTPS,
   necessário para uma tela de login. Amplify Hosting descartado (cota de 12 meses, programa antigo).
   Confirme a cota na página oficial de preços do CloudFront e cite URL e data.
 - **D-017 · Maven multimódulo.** O Lambda não pode carregar o Spring (D-012). Separar `nucleo`,
@@ -146,6 +148,8 @@ origem "autor" e status.
 
 **Aceite.** Seis decisões no `decisoes.md`, cada uma apontando o requisito ou a decisão anterior
 que motiva.
+
+> **Concluída em 24/10.** D-015 a D-020 em `docs/decisoes.md`. Correções ao guia, conferidas nas fontes oficiais: o plano gratuito do CloudFront é 1 milhão de requisições e 100 GB/mês (não 1 TB e 10 milhões); o fim de vida de 30/06/2026 é do Amazon Linux 2, o `java17` vai até 30/06/2027 e existe `java17.al2023`; `java21` e `java25` vão até 30/06/2029. Pendência: confirmar na T10 se o plano gratuito do CloudFront aceita OAC. Escrita delegada pelo Rodrigo por prazo; conteúdo e escolhas (java21, descartes da D-016, enquadramento da D-018) são dele.
 
 **Relatório.** §2 (Decisões da entrega).
 
@@ -169,6 +173,8 @@ que motiva.
 
 **Aceite.** `aws sts get-caller-identity --profile pa3` responde; `sam --version` responde;
 print dos dois budgets (sem número de conta visível) em `docs/av04/evidencias/tela/`.
+
+> **Bloqueada em 24/10.** Feito: CLI/SAM/Node/JDK conferidos, perfil `pa3`, `AdministratorAccess`, budgets A-1 e A-2 (prints), `.gitignore`. Pendente: a conta tem SCP que só libera `us-east-2`, o MFA não pôde ser configurado e a conta foi suspensa; a segunda conta não obteve plano gratuito. Aguardando o AWS Support (e o professor, sobre o prazo). Não reabrir a região (D-006) antes da resposta.
 
 **Relatório.** §6 (Roteiro de deploy — pré-requisitos) e §8 (Custo).
 
@@ -539,9 +545,9 @@ sem `UpdateItem`/`DeleteItem` nela.
 
 | Tarefa | Modo | Status   | Observação |
 | ------ | ---- | -------- | ---------- |
-| T00    | 🧑‍🏫   | Pendente |            |
-| T01    | 🧑‍🏫   | Pendente |            |
-| T02    | 🛠   | Pendente |            |
+| T00    | 🧑‍🏫   | Concluída | Perguntas enviadas em 24/10; sem resposta, seguimos com premissas |
+| T01    | 🧑‍🏫   | Concluída | D-015 a D-020; OAC no plano gratuito a confirmar na T10 |
+| T02    | 🛠   | Bloqueada | Conta AWS suspensa; SCP só `us-east-2`; sem MFA; caso no suporte (24/10) |
 | T03    | 🛠   | Pendente |            |
 | T04    | 🧑‍🏫   | Pendente |            |
 | T05    | 🛠   | Pendente |            |

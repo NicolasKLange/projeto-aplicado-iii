@@ -129,3 +129,72 @@ com o back-end pronto, a persistência entra direto no desenho da D-007. Consequ
 requisição processa um arquivo de ponta a ponta (recebe, valida, calcula e responde) e nada é gravado
 além da linha de log com SHA-256 e tamanho (T15); o relatório declara a limitação. A linha de base
 das evidências da T18 continua válida, sem recoleta.
+
+## D-015 — Plataforma Web, não mobile
+**Data:** 24/10/2026 · **Origem:** autor · **Status:** Vigente
+
+O público principal é o engenheiro no laboratório: envia a planilha, revisa o resultado e baixa o
+PDF, tarefas de tela grande e teclado. A validação por QR Code pedida no roteiro da AV04 entra como
+página pública e responsiva, aberta pela câmera do celular a partir do QR impresso no certificado
+(RF-16 da AV01). App mobile nativo foi descartado: dobraria o trabalho de interface sem atender a um
+uso que a página pública já cobre. Premissa: o professor ainda não respondeu à pergunta enviada na
+T00 sobre essa escolha (`[PREMISSA]` no relatório).
+
+## D-016 — Hospedagem da SPA: S3 privado + CloudFront com OAC
+**Data:** 24/10/2026 · **Origem:** autor · **Status:** Vigente
+
+A AV02 não definiu onde fica a interface. O bucket S3 fica privado e o CloudFront o serve com OAC,
+dando HTTPS, necessário para uma tela de login (Cognito). O plano gratuito do CloudFront inclui
+1 milhão de requisições e 100 GB de transferência por mês, sem cobrança de excedente, folga ampla
+para o volume do projeto e coerente com o custo R$ 0,00 (D-006, D-009). Fonte:
+https://aws.amazon.com/cloudfront/pricing/ (consultada em 24/10/2026). A página não informa se o
+plano é permanente nem se aceita OAC: ponto a confirmar na T10. Descartados: Amplify Hosting, por
+depender de cota de 12 meses do programa antigo (D-006); e S3 com *website hosting* público, que
+não oferece HTTPS e expõe o bucket.
+
+## D-017 — Maven multimódulo: `nucleo`, `app-local` e `funcoes`
+**Data:** 24/10/2026 · **Origem:** autor · **Status:** Vigente
+
+O Lambda não pode carregar o Spring (D-012). Separar o projeto em `nucleo`, `app-local` e `funcoes`
+é o que prova a D-012 na prática: o `pom.xml` do `nucleo` não declara o Spring, então um `import` do
+framework ali quebra o build, e a regra deixa de depender de disciplina. O JAR sombreado de `funcoes`
+leva só o núcleo e o SDK da AWS, sem a bagagem do framework, o que mantém o cold start enxuto. O mesmo
+núcleo atende as duas pontas, com os mesmos testes de cálculo: entrada HTTP no `app-local`, evento do
+S3 em `funcoes`. Alternativa descartada: módulo único com pacotes separados, porque o compilador não
+impediria a dependência do Spring.
+
+## D-018 — Recorte da AV04 e divergências em relação à AV02
+**Data:** 24/10/2026 · **Origem:** autor · **Status:** Vigente
+
+A entrega cobre os passos 1–7 e 10 do fluxo da AV02 (§1.1), com emissão automática (a D-010 já
+previa fundir minuta e emissão por configuração). O escopo foi dimensionado para um autor, não para o
+grupo previsto na AV02, e o prazo é curto: itens opcionais ameaçariam o fechamento de uma linha de base
+segura. Ficam fora e vão para o roadmap (`AV4_fonte.md` §11): TOTP no Cognito; aprovação do signatário
+e RN-12 (passo 8); numeração sequencial e Object Lock (passo 9), de modo que a imutabilidade do PDF não
+é garantida pela plataforma; e incerteza, k e veff (R-46 a R-50). Duas mudanças são técnicas, não de
+prazo: a URL pré-assinada **PUT** com `Content-Length` assinado substitui o formulário POST, pois o SDK
+Java v2 não gera POST pré-assinado (a confirmar na T07), mantendo o limite de tamanho; e o arquivo
+inválido não vai para `quarentena/`, a rejeição fica no DynamoDB com os erros (linha, coluna, regra),
+visível na tela. Mantidos: validação de entrada, idempotência por hash (RN-20), autenticação de usuário
+no PDF, retenção de 5 anos e custo R$ 0,00.
+
+## D-019 — Bibliotecas externas da AV04
+**Data:** 24/10/2026 · **Origem:** autor · **Status:** Vigente
+
+Além do Apache POI (D-011), a entrega usa: `aws-lambda-java-core` e `aws-lambda-java-events`, AWS SDK
+for Java v2 (`s3`, `dynamodb`), Apache PDFBox 3 (geração do PDF), ZXing `core` (QR Code), React + Vite
+(front-end) e AWS SAM CLI (deploy). Cada uma atende a uma necessidade que o JDK e o Spring não cobrem
+(D-017 impede o Spring nas funções). Versões conferidas no Maven Central e no npm no dia do uso, nunca
+de memória; nenhuma outra biblioteca entra sem aviso e nova entrada aqui.
+
+## D-020 — Runtime `java21`, bytecode 17
+**Data:** 24/10/2026 · **Origem:** autor · **Status:** Vigente
+
+As funções rodam no runtime `java21` (Amazon Linux 2023, deprecação em 30/06/2029), compiladas com
+`release 17`, o que mantém a D-011. O `java17` gerenciado roda em Amazon Linux 2, cujo fim de vida foi
+30/06/2026, e tem deprecação em 30/06/2027. Escolhido o `java21` por ser o runtime mais novo
+compatível com o bytecode já decidido. Alternativas descartadas: `java17.al2023`, que roda Java 17 em
+AL2023 (deprecação em 2029) e serviria, mas é a trilha para quem não pode atualizar o Java; e
+`java25`, também em AL2023, que exigiria rever a D-011. Fonte:
+https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html#runtimes-supported (consultada em
+24/10/2026).
