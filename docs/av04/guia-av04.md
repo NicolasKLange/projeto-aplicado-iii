@@ -247,7 +247,7 @@ dois envios simultâneos passariam os dois (corrida).
 
 ---
 
-### [ ] T05 · Geração do certificado em PDF ★ 🛠 (layout) / 🧑‍🏫 (conteúdo)
+### [x] T05 · Geração do certificado em PDF ★ 🛠 (layout) / 🧑‍🏫 (conteúdo)
 
 **Contexto.** Certificado real `Cal_1_5896_1_0 (1).pdf` (fora do Git, **só para olhar a
 estrutura**), `ResultadoCalibracao`, D-003, PV-14.
@@ -269,6 +269,11 @@ estrutura**), `ResultadoCalibracao`, D-003, PV-14.
 o hash e um enum; PDF de exemplo salvo em `docs/av04/evidencias/` e aberto por você.
 
 **Relatório.** §5 (Certificado gerado), com print.
+
+> **Concluída em 24/10.** `GeradorCertificado` + `DadosCertificado` em `funcoes`
+> (PDFBox 3.0.8, ZXing `core` 3.5.4, QR desenhado como retângulos). 85 testes verdes (3 novos).
+> PDF de exemplo: `docs/av04/evidencias/certificado-ok-reprovado.pdf` (planilha sintética).
+> Divergência de PV-14: layout simplificado, sem o formato da Schulz. PDF aberto e conferido pelo Rodrigo; print em `evidencias/tela/relatorio-pdf.png`.
 
 ---
 
@@ -554,7 +559,7 @@ sem `UpdateItem`/`DeleteItem` nela.
 | T02    | 🛠   | Bloqueada | Conta AWS suspensa; SCP só `us-east-2`; sem MFA; caso no suporte (24/10) |
 | T03    | 🛠   | Concluída | Multimódulo; 71 testes verdes; `Medidor` no núcleo |
 | T04    | 🧑‍🏫→🛠 | Concluída | Porta + adaptador em memória; 82 testes verdes; D-021; falta provar no DynamoDB (T06) |
-| T05    | 🛠   | Pendente |            |
+| T05    | 🛠   | Concluída | PDF com QR; 85 testes verdes; divergência de PV-14 (layout simplificado) |
 | T06    | 🧑‍🏫   | Pendente |            |
 | T07    | 🛠   | Pendente |            |
 | T08    | 🛠   | Pendente |            |
