@@ -209,7 +209,9 @@ print dos dois budgets (sem número de conta visível) em `docs/av04/evidencias/
 
 ---
 
-### [ ] T04 · Modelo de persistência e idempotência (RN-20) ★ 🧑‍🏫 🔒
+### [x] T04 · Modelo de persistência e idempotência (RN-20) ★ 🧑‍🏫 🔒
+
+> **Concluída em 24/10.** Modo mudou de instrutivo para delegado a pedido do Rodrigo, que decidiu as três perguntas (mesmo id; `DUPLICADA` com ponteiro; rejeitada grava a sentinela e o reenvio é curto-circuitado pelo hash). Porta `RepositorioCalibracoes` em `nucleo/persistencia`, adaptador em memória e 11 testes; `./mvnw test`: 82 testes (67 + 15), 0 falhas. `modelo-dados.md` e D-021. Pendente de validação na T06: condição do `TransactWriteItems` no DynamoDB real.
 
 **Contexto.** AV02 §3.2 (tabela única `PK`/`SK`, sentinelas `HASH#`/`TOKEN#`, GSI2), D-007, D-014,
 nota da T17 no `docs/av03/guia-av03.md`.
@@ -551,7 +553,7 @@ sem `UpdateItem`/`DeleteItem` nela.
 | T01    | 🧑‍🏫   | Concluída | D-015 a D-020; OAC no plano gratuito a confirmar na T10 |
 | T02    | 🛠   | Bloqueada | Conta AWS suspensa; SCP só `us-east-2`; sem MFA; caso no suporte (24/10) |
 | T03    | 🛠   | Concluída | Multimódulo; 71 testes verdes; `Medidor` no núcleo |
-| T04    | 🧑‍🏫   | Pendente |            |
+| T04    | 🧑‍🏫→🛠 | Concluída | Porta + adaptador em memória; 82 testes verdes; D-021; falta provar no DynamoDB (T06) |
 | T05    | 🛠   | Pendente |            |
 | T06    | 🧑‍🏫   | Pendente |            |
 | T07    | 🛠   | Pendente |            |

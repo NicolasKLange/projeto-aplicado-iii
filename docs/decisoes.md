@@ -198,3 +198,16 @@ AL2023 (deprecação em 2029) e serviria, mas é a trilha para quem não pode at
 `java25`, também em AL2023, que exigiria rever a D-011. Fonte:
 https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html#runtimes-supported (consultada em
 24/10/2026).
+
+## D-021 — Modelo de persistência e idempotência da AV04
+**Data:** 24/10/2026 · **Origem:** autor · **Status:** Vigente
+
+O `uploadId` é o id da calibração: a `fn-api` cria `CAL#<id>` em `PROCESSANDO` antes do envio. Cinco
+estados (`PROCESSANDO`, `PROCESSADA`, `REJEITADA`, `DUPLICADA`, `EMITIDA`) no lugar dos da AV02. O mesmo
+hash em outro envio marca `DUPLICADA` com ponteiro para o original; o mesmo hash no mesmo `id` (evento
+repetido do S3) é retomada e não altera nada. A planilha rejeitada por regra de negócio grava a
+sentinela `HASH#`, e o reenvio é encerrado sem abrir o Excel; falha técnica não grava. Sem item `ARQ#`
+(nome do arquivo é proibido) e com o resultado embutido no `META`. O GSI2 passa a ser `USER#<sub>` +
+instante, para a lista do usuário (T12); a fila por estado da AV02 pertence à aprovação, que a D-018
+deixou fora. GSI1 não é criado. Detalhe em `docs/av04/modelo-dados.md`. Limitação aceita: contrato da
+planilha alterado não libera hash já rejeitado.
