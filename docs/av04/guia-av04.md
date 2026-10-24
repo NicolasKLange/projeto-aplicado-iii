@@ -182,7 +182,7 @@ print dos dois budgets (sem número de conta visível) em `docs/av04/evidencias/
 
 ## Fase 1 — Back-end preparado para a nuvem
 
-### [ ] T03 · Converter para Maven multimódulo ★ 🛠
+### [x] T03 · Converter para Maven multimódulo ★ 🛠
 
 **Contexto.** `pom.xml`, `README.md` (Estrutura), D-012, D-017.
 
@@ -202,6 +202,8 @@ print dos dois budgets (sem número de conta visível) em `docs/av04/evidencias/
 **Aceite.** `./mvnw test` na raiz: **71 testes, 0 falhas, 1 pulado** (mesmo número da AV03);
 `./mvnw -pl app-local spring-boot:run` abre a tela da AV03 e processa `ok-reprovado.xlsx`;
 `grep -r "springframework" nucleo/` vazio.
+
+> **Concluída em 24/10.** Módulos `nucleo`, `app-local` e `funcoes` (este ainda sem código, com `nucleo` como dependência). `git mv` em tudo; `./mvnw test`: 71 testes (56 + 15), 0 falhas, 1 pulado num clone limpo (na máquina do autor o `strict-real.xlsx` local existe e o teste roda). Os testes do `app-local` leem as planilhas pelo *test-jar* do `nucleo` (uma única cópia). `Medidor` foi para `nucleo/ingestao` sem log (o `ProcessamentoService` loga). `spring-boot-maven-plugin` com `skip` no pai e `skip=false` no `app-local`, para `-pl app-local -am spring-boot:run` funcionar.
 
 **Relatório.** §3 (Arquitetura implementada): estrutura de módulos e prova da D-012.
 
@@ -548,7 +550,7 @@ sem `UpdateItem`/`DeleteItem` nela.
 | T00    | 🧑‍🏫   | Concluída | Perguntas enviadas em 24/10; sem resposta, seguimos com premissas |
 | T01    | 🧑‍🏫   | Concluída | D-015 a D-020; OAC no plano gratuito a confirmar na T10 |
 | T02    | 🛠   | Bloqueada | Conta AWS suspensa; SCP só `us-east-2`; sem MFA; caso no suporte (24/10) |
-| T03    | 🛠   | Pendente |            |
+| T03    | 🛠   | Concluída | Multimódulo; 71 testes verdes; `Medidor` no núcleo |
 | T04    | 🧑‍🏫   | Pendente |            |
 | T05    | 🛠   | Pendente |            |
 | T06    | 🧑‍🏫   | Pendente |            |

@@ -42,10 +42,10 @@ função serverless da arquitetura da AV02.
 ## Como rodar
 
 ```bash
-./mvnw spring-boot:run          # Windows: mvnw.cmd spring-boot:run
+./mvnw -pl app-local -am spring-boot:run   # Windows: mvnw.cmd ...
 ```
 
-Abra <http://localhost:8080/>, escolha uma planilha de `src/test/resources/planilhas/`
+Abra <http://localhost:8080/>, escolha uma planilha de `nucleo/src/test/resources/planilhas/`
 (por exemplo, `ok-reprovado.xlsx`) e clique em **Processar**.
 
 ## Como testar
@@ -64,7 +64,7 @@ empresa, mantida fora do Git; a mesma verificação roda com o arquivo sintétic
 `POST /api/calibracoes/processamento` — `multipart/form-data`, campo `arquivo`.
 
 ```bash
-curl -i -F arquivo=@src/test/resources/planilhas/ok-aprovado.xlsx \
+curl -i -F arquivo=@nucleo/src/test/resources/planilhas/ok-aprovado.xlsx \
   http://localhost:8080/api/calibracoes/processamento
 ```
 
@@ -100,7 +100,7 @@ respostas estão em `docs/av03/evidencias/respostas/`.
 
 ## Planilhas de exemplo
 
-`src/test/resources/planilhas/` tem 7 planilhas válidas (`ok-*`) e 14 inválidas (`inv-*`,
+`nucleo/src/test/resources/planilhas/` tem 7 planilhas válidas (`ok-*`) e 14 inválidas (`inv-*`,
 cada uma violando uma regra do contrato). Os valores esperados de cada uma, calculados de forma
 independente do Java, estão em `docs/av03/oraculo-planilhas.md`.
 
@@ -115,13 +115,17 @@ LibreOffice opcional). A exceção é `inv-R03-strict.xlsx`, salva no Excel desk
 ## Estrutura
 
 ```
-src/main/java/br/senai_pa3/
-  dominio/       cálculo e regras metrológicas (Java puro, sem Spring)
-  ingestao/      leitura e validação da planilha (Apache POI)
-  aplicacao/     orquestração; SHA-256 e tamanho do arquivo no log
-  web/           endpoint REST, DTOs e tratamento de erros
-src/main/resources/static/   interface (HTML, CSS e JavaScript, sem bibliotecas)
-src/test/                    testes automatizados e planilhas sintéticas
+nucleo/        Java puro, sem Spring nem AWS (D-012, D-017); só depende do POI
+  src/main/java/br/senai_pa3/
+    dominio/     cálculo e regras metrológicas
+    ingestao/    leitura e validação da planilha (Apache POI); Medidor (SHA-256 e tamanho)
+  src/test/      testes do núcleo e planilhas sintéticas (publicadas como test-jar)
+app-local/     tela e API da AV03 sobre o núcleo (Spring Boot)
+  src/main/java/br/senai_pa3/
+    aplicacao/   orquestração; SHA-256 e tamanho do arquivo no log
+    web/         endpoint REST, DTOs e tratamento de erros
+  src/main/resources/static/   interface (HTML, CSS e JavaScript, sem bibliotecas)
+funcoes/       funções Lambda (a partir da T05)
 docs/decisoes.md             registro de decisões do projeto
 docs/av02/                   relatório da AV02 (arquitetura em nuvem)
 docs/av03/                   guia, contrato da planilha, oráculo e evidências de teste

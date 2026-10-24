@@ -75,8 +75,6 @@ cd web && npm run dev                        # front-end contra a API na nuvem
 infra/deploy.sh / infra/deploy-web.sh / infra/smoke.sh
 ```
 
-(Antes da T03 o projeto ainda é módulo único: `./mvnw test` e `./mvnw spring-boot:run`.)
-
 ## Mapa
 
 - `docs/decisoes.md` — decisões D-001 em diante.

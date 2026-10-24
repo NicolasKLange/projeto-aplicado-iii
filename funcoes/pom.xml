@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>br.senai.pa3.certificado</groupId>
+		<artifactId>app-java</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>funcoes</artifactId>
+	<name>funcoes</name>
+	<description>Funções Lambda (fn-ingestao e demais); JAR sombreado entra na T05</description>
+
+	<dependencies>
+		<dependency>
+			<groupId>br.senai.pa3.certificado</groupId>
+			<artifactId>nucleo</artifactId>
+		</dependency>
+	</dependencies>
+</project>

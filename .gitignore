@@ -45,10 +45,10 @@ aws-exports.js
 
 # Planilhas: só as sintéticas de teste entram no Git
 *.xlsx
-!src/test/resources/planilhas/*.xlsx
+!nucleo/src/test/resources/planilhas/*.xlsx
 
 # Testes locais com arquivos reais da Schulz (T11, T12) — nunca versionar
-src/test/resources/local/
+nucleo/src/test/resources/local/
 
 # Documentos com dados reais e material do professor
 docs/av01/
