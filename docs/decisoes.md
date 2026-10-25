@@ -39,7 +39,7 @@ Importar (UC-01), calcular (UC-02) e emitir (UC-03). É a espinha dorsal que res
 anomalias críticas da AV01. UC-04 a UC-08 e os requisitos RF-19 a RF-22 ficam no roadmap.
 
 ## D-006 — Conta dedicada no plano gratuito, região sa-east-1
-**Data:** 02/10/2026 · **Origem:** grupo · **Status:** Vigente
+**Data:** 02/10/2026 · **Origem:** grupo · **Status:** Substituída pela D-022 (região)
 
 Desde 15/07/2025 o Free Tier da AWS para contas novas é um plano gratuito com créditos
 (US$ 100 a 200, 6 meses), que não gera fatura; as cotas Always Free continuam valendo.
@@ -211,3 +211,51 @@ sentinela `HASH#`, e o reenvio é encerrado sem abrir o Excel; falha técnica n�
 instante, para a lista do usuário (T12); a fila por estado da AV02 pertence à aprovação, que a D-018
 deixou fora. GSI1 não é criado. Detalhe em `docs/av04/modelo-dados.md`. Limitação aceita: contrato da
 planilha alterado não libera hash já rejeitado.
+
+## D-022 — Região `us-east-2`, imposta pelo plano gratuito da nova experiência AWS
+**Data:** 25/10/2026 · **Origem:** autor · **Status:** Vigente (substitui a região da D-006)
+
+A conta nova (plano gratuito, créditos até 24/04/2027) está na "nova experiência AWS", organizada por
+projetos. Nesse modelo cada projeto é uma conta-membro de uma AWS Organization gerenciada pela própria
+AWS, e a SCP dela só libera serviços regionais em `us-east-2`. Conferido no console em 25/10/2026:
+Lambda em `sa-east-1` responde "This feature isn't supported for this project"; em `us-east-1`,
+*explicit deny* da SCP; em `us-east-2` abrem Lambda, S3, DynamoDB, Cognito, API Gateway e
+CloudFormation. CloudFront e Budgets (globais) abrem. A conta anterior tinha a mesma SCP; não era erro
+de configuração. O login no console é por papel gerenciado (`AccountFullAccessRole`), sem menu
+*Security credentials*: o MFA do login humano é o do AWS Builder ID (settings.aws.com → *Manage security and sign-in*), e o acesso programático é um usuário
+IAM próprio (o console o recomenda só para esse uso).
+
+Alertas de orçamento: o e-mail direto do Budgets exige verificação pelo serviço `notifications-contacts`
+(obrigatória para destinatários incluídos a partir de 30/09/2026), que roda em `us-east-1` e é negado
+pela mesma SCP, apesar de o papel do console ter `AdministratorAccess`. Os alertas dos budgets passam a
+publicar num tópico SNS padrão em `us-east-2` (`pa3-budgets-alertas`, sem criptografia, política que só
+aceita `budgets.amazonaws.com` desta conta) com assinatura por e-mail confirmada. O destinatário de
+e-mail direto continua cadastrado, inativo. Fonte da política: 
+https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-sns-policy.html (consultada em
+25/10/2026).
+
+O restante da D-006 continua valendo (conta dedicada, plano gratuito, sem conversão para pago sem
+decisão registrada).
+
+Consequência para a LGPD: dados processados nos EUA configuram transferência internacional (LGPD,
+art. 33). Na PoC só entram planilhas sintéticas ou sanitizadas, sem dado pessoal (README, "Dados e
+LGPD"), então a transferência não alcança dado pessoal. Recomendação para produção: `sa-east-1` em
+conta no plano pago, sem a SCP do plano gratuito. Alternativas descartadas: converter a conta para o
+plano pago (fere o custo R$ 0,00 e a D-006) e esperar o AWS Support (prazo de entrega em 29/10).
+A documentação pública da AWS não informa essa restrição de região; a fonte é a mensagem do próprio
+console.
+
+## D-023 — Ingestão lê o objeto inteiro e grava valores numéricos como texto
+**Data:** 25/10/2026 · **Origem:** autor · **Status:** Vigente
+
+A `fn-ingestao` lê o objeto do S3 inteiro para um `byte[]` (teto de 5 MB, R01), calcula o SHA-256,
+consulta `idDoHash` e só então parseia a partir da memória. Assim o atalho da duplicata funciona sem
+abrir o Excel, com um único `GetObject` e sem mudar o contrato de `POST /uploads`. Alternativas
+descartadas: checksum SHA-256 informado pelo cliente no upload (muda T07 e T11; o ETag é MD5, não
+serve) e parsear sempre, deixando só a sentinela decidir (correto, mas gasta CPU em duplicata).
+Divergência do guia da T06, que pedia *stream*: aceita pelo teto de 5 MB. No DynamoDB, os valores
+metrológicos (`BigDecimal`) são gravados como `S` com `toPlainString`, porque o tipo `N` normaliza
+zeros à direita e perderia a escala 10. `buscar` usa leitura fortemente consistente, inclusive para a
+`fn-api`, que lê logo após a escrita. Só `PROCESSADA` devolve `calibracaoId`; rejeitada e duplicada
+devolvem vazio, e a `fn-certificado` (T07) deve ignorar envelope sem `calibracaoId`, pois o destino
+`OnSuccess` aciona a função com qualquer retorno.

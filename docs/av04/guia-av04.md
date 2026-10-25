@@ -42,6 +42,9 @@ repositório (guia, `docs/decisoes.md`, código e commits), não no chat.
 | Qua 28/10   | T15 e T16       | Evidências, matriz de rastreabilidade e vídeo no YouTube       |
 | Qui 29/10   | T17 e T18       | Relatório em PDF, revisão e envio no AVA                       |
 
+**Ajuste de 25/10:** a T02 ficou bloqueada no sábado e foi reaberta no domingo. Ela vem antes da
+T06, e todo comando AWS usa `--profile pa3 --region us-east-2` (D-022).
+
 **Se atrasar, corte nesta ordem:** T19 (auditoria) → QR no PDF (fica só a URL impressa) →
 T12 (histórico) → layout do PDF. Não se corta: Cognito, pipeline por evento, vídeo, matriz.
 
@@ -155,26 +158,38 @@ que motiva.
 
 ---
 
-### [ ] T02 · Preparar a conta AWS e as ferramentas 🔒 ★ 🛠
+### [x] T02 · Preparar a conta AWS e as ferramentas 🔒 ★ 🛠
 
-**Contexto.** D-006 e AV02 §2.2 (plano de monitoramento A-1/A-2).
+**Contexto.** D-006, D-022 e AV02 §2.2 (plano de monitoramento A-1/A-2).
 
 **Faça.**
 
-- Conta dedicada no plano gratuito (D-006), região `sa-east-1`. Confira o saldo e a validade dos
-  créditos em *Billing → Free Tier*.
-- Usuário IAM administrativo **com MFA** para o dia a dia; raiz só com MFA e sem chave de acesso.
-  Credenciais em `aws configure --profile pa3` (nunca no repositório).
-- Budgets: *Zero spend budget* (A-1) e orçamento de US$ 1/mês (A-2), alerta por e-mail.
+- Conta dedicada no plano gratuito (D-006), região **`us-east-2`** (D-022). Confira o saldo e a
+  validade dos créditos no painel *Cost and usage* do console.
+- Login humano: o login é o AWS Builder ID. Ative o MFA em https://settings.aws.com → *Manage
+  security and sign-in* → *Security* → *Register device*. Nesta conta não há menu *Security
+  credentials* (D-022).
+- Acesso programático: em *IAM → Users*, crie `pa3-deploy` sem acesso ao console, com
+  `AdministratorAccess`, e gere uma access key (*Command Line Interface*). Ative MFA no usuário se o
+  console oferecer. `aws configure --profile pa3` com a chave nova, região `us-east-2`, saída `json`
+  (sobrescreve a chave da conta suspensa; nunca no repositório).
+- Budgets na conta nova: *Zero spend budget* (A-1) e orçamento de US$ 1/mês (A-2), alerta por
+  e-mail. Os prints de 24/10 são da conta suspensa: substitua-os.
 - Instale e confira: AWS CLI v2, AWS SAM CLI, Node LTS (`node -v`, `npm -v`), JDK 21.
 - `.gitignore` (já cobre `.env*`, `node_modules/`, `dist/`): acrescente `.aws-sam/`; decida se o
   `samconfig.toml` entra (só se não tiver nada sensível); o `.claude/` está ignorado inteiro — para
   versionar o comando `/tarefa`, troque a linha `.claude/` por `.claude/*` e `!.claude/commands/`.
 
-**Aceite.** `aws sts get-caller-identity --profile pa3` responde; `sam --version` responde;
-print dos dois budgets (sem número de conta visível) em `docs/av04/evidencias/tela/`.
+**Aceite.** `aws sts get-caller-identity --profile pa3` responde com o usuário `pa3-deploy`;
+`aws dynamodb list-tables --profile pa3` responde em `us-east-2` (sem *explicit deny*);
+`sam --version` responde; print dos dois budgets da conta nova (sem número de conta visível) em
+`docs/av04/evidencias/tela/`.
 
-> **Bloqueada em 24/10.** Feito: CLI/SAM/Node/JDK conferidos, perfil `pa3`, `AdministratorAccess`, budgets A-1 e A-2 (prints), `.gitignore`. Pendente: a conta tem SCP que só libera `us-east-2`, o MFA não pôde ser configurado e a conta foi suspensa; a segunda conta não obteve plano gratuito. Aguardando o AWS Support (e o professor, sobre o prazo). Não reabrir a região (D-006) antes da resposta.
+> **Bloqueada em 24/10.** Conta original suspensa; SCP só liberava `us-east-2`; MFA não configurado. Concluído naquela data e ainda válido: CLI/SAM/Node/JDK conferidos e `.gitignore`.
+>
+> **Reaberta em 25/10.** Conta nova no plano gratuito (US$ 100, até 24/04/2027). Conferido no console: mesma SCP (só `us-east-2`), e em `us-east-2` abrem Lambda, S3, DynamoDB, Cognito, API Gateway e CloudFormation; CloudFront e Budgets abrem. Região decidida na D-022. MFA do AWS Builder ID ativo em 25/10 (WebAuthn e TOTP; print tarjado em `docs/av04/evidencias/tela/mfa-tarjado.png`). Falta: usuário `pa3-deploy` e perfil `pa3`, budgets e prints, Aceite.
+>
+> **Concluída em 25/10.** Aceite: `sts get-caller-identity` → `user/pa3-deploy`; `dynamodb list-tables` em `us-east-2` → `{"TableNames": []}`, sem *explicit deny*; SAM CLI 1.170.0. Budgets A-1 (zero spend, real > US$ 0,01) e A-2 (US$ 1/mês: real > 85% e > 100%, previsto > 100%) na conta nova. Desvio: o e-mail direto do Budgets não pode ser verificado (`notifications-contacts` negado pela SCP); os quatro alertas publicam no tópico SNS `pa3-budgets-alertas` (`us-east-2`), com assinatura por e-mail confirmada (D-022). `pa3-deploy` não tem senha de console; sem MFA, porque só usa access key (mitigação: chave só no perfil local `pa3`, desativar após a nota). Prints: `mfa-tarjado.png` e `budgets-conta-nova.png`; `Budget.png`, `Budget zero-spend.png` e `User.png` são da conta suspensa e saem do repositório.
 
 **Relatório.** §6 (Roteiro de deploy — pré-requisitos) e §8 (Custo).
 
@@ -279,7 +294,9 @@ o hash e um enum; PDF de exemplo salvo em `docs/av04/evidencias/` e aberto por v
 
 ## Fase 2 — Funções e infraestrutura
 
-### [ ] T06 · `fn-ingestao` ★ 🧑‍🏫
+### [x] T06 · `fn-ingestao` ★ 🧑‍🏫
+
+> **Concluída em 25/10.** Handler `FnIngestao` (S3 falso, 8 testes: válida, R10, duplicada, reentrega de duplicada, evento repetido, exceção, chave fora do padrão, log sem `sub`/chave), adaptador `RepositorioCalibracoesDynamoDb` com mapeador e `DecisorCancelamento`; `./mvnw test`: 102 testes (67 + 35), 0 falhas. D-023. **Pendente na T09:** condições do `TransactWriteItems` no DynamoDB real (roteiro: envio normal, mesmo arquivo com outro id, evento repetido, id sem item, duas invocações simultâneas do mesmo hash). T07: `fn-certificado` ignora envelope sem `calibracaoId`.
 
 **Contexto.** `ProcessamentoService` (AV03), porta da T04, `LeitorPlanilha`, AV02 §3.1 (E3–E5).
 
@@ -310,6 +327,9 @@ o hash e um enum; PDF de exemplo salvo em `docs/av04/evidencias/` e aberto por v
 - `fn-certificado`: recebe o envelope do destino do Lambda (`responsePayload.calibracaoId`), carrega,
   gera o PDF (T05), grava `certificados/<id>.pdf` (SSE-S3), grava o item `TOKEN#<token>` (32
   caracteres aleatórios, `SecureRandom`) e muda o estado para `EMITIDA` com o hash do PDF.
+  **Pendência da T06:** o destino OnSuccess dispara com qualquer retorno e não filtra por payload. A
+  `fn-ingestao` devolve `{}` (sem `calibracaoId`) em REJEITADA e DUPLICADA; a `fn-certificado` deve
+  **ignorar, com sucesso**, o envelope sem `calibracaoId`, sem tentar emitir.
 - `fn-api` (um handler, roteamento por `routeKey` do evento HTTP API v2):
   - `POST /uploads` `{tamanho}` → recusa > 5 MB; devolve `uploadId` e URL **PUT** pré-assinada
     (5 min, `Content-Type` e `Content-Length` assinados) para `uploads/<sub>/<uploadId>.xlsx`.
@@ -351,7 +371,7 @@ D-020.
   só em `uploads/*`). Você escreve as políticas; o Claude revisa.
 - **Saídas** do stack: URL da API, URL do CloudFront, ids do user pool e do cliente.
 
-Deploy: `sam deploy --guided --profile pa3 --region sa-east-1` na primeira vez.
+Deploy: `sam deploy --guided --profile pa3 --region us-east-2` (D-022) na primeira vez.
 
 **Aceite.** Stack `CREATE_COMPLETE`; nenhum recurso fora da lista acima (sem NAT, sem KMS próprio,
 sem DynamoDB sob demanda); `aws s3api get-bucket-lifecycle-configuration` mostra a regra.
@@ -556,11 +576,11 @@ sem `UpdateItem`/`DeleteItem` nela.
 | ------ | ---- | -------- | ---------- |
 | T00    | 🧑‍🏫   | Concluída | Perguntas enviadas em 24/10; sem resposta, seguimos com premissas |
 | T01    | 🧑‍🏫   | Concluída | D-015 a D-020; OAC no plano gratuito a confirmar na T10 |
-| T02    | 🛠   | Bloqueada | Conta AWS suspensa; SCP só `us-east-2`; sem MFA; caso no suporte (24/10) |
+| T02    | 🛠   | Concluída | Conta nova, `us-east-2` (D-022); MFA no Builder ID; `pa3-deploy`; budgets via SNS |
 | T03    | 🛠   | Concluída | Multimódulo; 71 testes verdes; `Medidor` no núcleo |
 | T04    | 🧑‍🏫→🛠 | Concluída | Porta + adaptador em memória; 82 testes verdes; D-021; falta provar no DynamoDB (T06) |
 | T05    | 🛠   | Concluída | PDF com QR; 85 testes verdes; divergência de PV-14 (layout simplificado) |
-| T06    | 🧑‍🏫   | Pendente |            |
+| T06    | 🧑‍🏫   | Concluída | Handler + adaptador DynamoDB; 102 testes verdes; D-023; falta provar o DynamoDB real (T09) |
 | T07    | 🛠   | Pendente |            |
 | T08    | 🛠   | Pendente |            |
 | T09    | 🛠   | Pendente |            |

@@ -51,7 +51,7 @@ DOCX/PDF sem necessidade.
 - Os enums `DENTRO_DA_TOLERANCIA`, `FORA_DA_TOLERANCIA`, `APROVADO`, `REPROVADO` aparecem
   literalmente no código, na API e na tela.
 - Erros HTTP em `application/problem+json`; 500 devolve só um `id` que liga ao log.
-- Credenciais AWS só no perfil `pa3` do AWS CLI. Região `sa-east-1`. Nada de NAT Gateway, KMS com
+- Credenciais AWS só no perfil `pa3` do AWS CLI. Região `us-east-2` (D-022). Nada de NAT Gateway, KMS com
   chave própria, DynamoDB sob demanda, RDS ou recurso ligado 24 h (custo R$ 0,00, D-006/D-007/D-009).
 
 ## Stack e armadilhas conhecidas

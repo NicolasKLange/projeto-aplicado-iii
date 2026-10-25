@@ -13,7 +13,7 @@ import br.senai_pa3.ingestao.ErroValidacao;
  * Adaptador de teste da porta. {@code synchronized} faz o papel da transação do
  * DynamoDB: a checagem da sentinela e a gravação não se intercalam.
  */
-class RepositorioEmMemoria implements RepositorioCalibracoes {
+public class RepositorioEmMemoria implements RepositorioCalibracoes {
 
     private final Map<String, RegistroCalibracao> calibracoes = new HashMap<>();
     /** {@code HASH#<sha256>} → id do dono. */
