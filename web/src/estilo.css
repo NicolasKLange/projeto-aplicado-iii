@@ -272,3 +272,97 @@ input[type="password"] {
   border: 1px solid var(--borda);
   border-radius: 0.375rem;
 }
+
+/* Processamento (T11). RNF-15: alvos de toque com 44 px no mínimo (2,75rem) e layout que cabe em
+ * 768 px sem rolagem lateral da página; só as tabelas rolam dentro do cartão.
+ * Botão secundário #1d4ed8 sobre #fff = 6,7:1; sobre #eff6ff = 6,2:1; sobre #fee2e2 = 5,5:1;
+ * seletor de arquivo #1f2937/#f1f5f9 = 13,4:1. */
+button {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+}
+
+input[type="file"] {
+  min-height: 2.75rem;
+}
+
+input[type="file"]::file-selector-button {
+  min-height: 2.75rem;
+  margin-right: 0.75rem;
+  padding: 0.55rem 1rem;
+  font: inherit;
+  color: var(--texto);
+  background: var(--cabecalho);
+  border: 1px solid var(--borda);
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+input[type="file"]:disabled::file-selector-button {
+  cursor: progress;
+}
+
+button.secundaria {
+  color: var(--primaria);
+  background: var(--superficie);
+  border: 1px solid var(--primaria);
+}
+
+button.secundaria:hover:not(:disabled) {
+  color: #ffffff;
+  background: var(--primaria-escura);
+}
+
+.topo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.usuario {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.mensagem button {
+  margin-left: 0.25rem;
+  vertical-align: middle;
+}
+
+.baixar {
+  margin-top: 1rem;
+}
+
+.erro-baixar {
+  margin: 0.5rem 0 0;
+  font-weight: 600;
+}
+
+/* Tablet (768 px): a tabela de pontos cabe sem rolar; o selo de status quebra após "_". */
+@media (max-width: 52rem) {
+  .cartao {
+    padding: 1rem;
+  }
+
+  table {
+    font-size: 0.875rem;
+  }
+
+  th,
+  td {
+    padding: 0.5rem 0.375rem;
+  }
+
+  th {
+    white-space: normal;
+  }
+
+  .status {
+    white-space: normal;
+  }
+}

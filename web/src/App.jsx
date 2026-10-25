@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { entrar } from './cognito.js';
+import Processamento from './Processamento.jsx';
 import { lerUsuario } from './token.js';
 
 // Rota pública /verificar/<token>: entra na T14. Aqui só reservamos o caminho.
@@ -68,9 +69,17 @@ function Painel({ token, aoSair }) {
   const { nome, email } = lerUsuario(token);
   return (
     <main>
-      <h1>Certificado de calibração</h1>
-      <p>Usuário: <strong>{nome ?? email ?? 'autenticado'}</strong></p>
-      <button type="button" onClick={aoSair}>Sair</button>
+      <header className="topo">
+        <div>
+          <h1>Certificado de calibração</h1>
+          <p className="secundario">Envie a planilha de ensaio (.xlsx) para calcular os pontos e o parecer.</p>
+        </div>
+        <div className="usuario">
+          <span>Usuário: <strong>{nome ?? email ?? 'autenticado'}</strong></span>
+          <button type="button" className="secundaria" onClick={aoSair}>Sair</button>
+        </div>
+      </header>
+      <Processamento token={token} aoExpirar={aoSair} />
     </main>
   );
 }

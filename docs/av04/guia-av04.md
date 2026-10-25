@@ -438,7 +438,7 @@ sem detalhe técnico.
 
 ---
 
-### [ ] T11 · Tela de processamento ★ 🛠 (*plan mode*)
+### [x] T11 · Tela de processamento ★ 🛠 (*plan mode*)
 
 **Contexto.** `app-local/.../static/app.js` e `estilo.css` (AV03), achados 11 e 12 da AV03
 (corrida na troca de arquivo).
@@ -458,6 +458,8 @@ sem detalhe técnico.
 `inv-multiplos-erros`; prints.
 
 **Relatório.** §5, com prints.
+
+> **Concluída em 25/10.** `web/src/Processamento.jsx` (tela), `api.js` (POST/PUT/GET e download do PDF como *blob*, porque navegar até o S3 derrubaria o token em memória) e `formato.js` (5 casas por HALF_EVEN em `BigInt` sobre o texto da API, igual ao PDF; empates conferidos contra `BigDecimal` no `jshell`). *Polling* a cada 1,5 s por até 40 s, com "Consultar de novo"; `PROCESSADA` continua esperando o PDF. A12 estendido: `AbortController` por envio cancela o polling anterior ao trocar de arquivo, sair ou desmontar a tela. Provado no Chrome contra a nuvem: `ok-aprovado` → `APROVADO`, `ok-reprovado` → `REPROVADO` (furo B `FORA_DA_TOLERANCIA`), `inv-multiplos-erros` → `REJEITADA` (R10, R11, R14), reenvio → `DUPLICADA`; troca de arquivo limpa a tela; o *blob* do PDF tem SHA-256 igual ao `sha256Pdf` do DynamoDB. Em 768 px: alvos de 44 px, sem rolagem lateral da página e tabela inteira visível (`<wbr>` após "_" no selo, enum intacto). Prints `docs/av04/evidencias/tela/t11-*.jpg`. Usuário de teste apagado. `./mvnw test`: 149 testes, 0 falhas; `npm run build` verde. **Não exercitados na nuvem:** prazo de 40 s esgotado, 401 no meio do polling e 500 (caminhos de código revisados, sem print). O arquivo não foi encontrado em `~/Downloads` (o Chrome do grupo pode pedir o local ou salvar em outro perfil); o download foi provado pelo *blob* interceptado.
 
 ---
 
@@ -594,7 +596,7 @@ sem `UpdateItem`/`DeleteItem` nela.
 | T08    | 🛠   | Concluída | Stack `pa3-av04` `CREATE_COMPLETE`; sem CloudFront (D-026); IAM delegado |
 | T09    | 🛠   | Concluída | `infra/smoke.sh`: 6 cenários na nuvem passam; DynamoDB real provado; ID token no autorizador |
 | T10    | 🛠/🧑‍🏫 | Concluída | `web/` com login no Cognito real (ID token em memória); `cognito.js` do Rodrigo; testado no Chrome |
-| T11    | 🛠   | Pendente |            |
+| T11    | 🛠   | Concluída | Upload → S3 → polling; 4 estados provados na nuvem; HALF_EVEN igual ao PDF; 768 px sem rolagem |
 | T12    | 🛠   | Pendente |            |
 | T13    | 🛠   | Pendente |            |
 | T14    | 🛠   | Pendente |            |
