@@ -185,7 +185,7 @@ Além do Apache POI (D-011), a entrega usa: `aws-lambda-java-core` e `aws-lambda
 for Java v2 (`s3`, `dynamodb`), Apache PDFBox 3 (geração do PDF), ZXing `core` (QR Code), React + Vite
 (front-end) e AWS SAM CLI (deploy). Cada uma atende a uma necessidade que o JDK e o Spring não cobrem
 (D-017 impede o Spring nas funções). Versões conferidas no Maven Central e no npm no dia do uso, nunca
-de memória; nenhuma outra biblioteca entra sem aviso e nova entrada aqui.
+de memória; nenhuma outra biblioteca entra sem aviso e nova entrada aqui. Acréscimo: `cognitoidentityprovider` (D-025).
 
 ## D-020 — Runtime `java21`, bytecode 17
 **Data:** 24/10/2026 · **Origem:** autor · **Status:** Vigente
@@ -259,3 +259,31 @@ zeros à direita e perderia a escala 10. `buscar` usa leitura fortemente consist
 `fn-api`, que lê logo após a escrita. Só `PROCESSADA` devolve `calibracaoId`; rejeitada e duplicada
 devolvem vazio, e a `fn-certificado` (T07) deve ignorar envelope sem `calibracaoId`, pois o destino
 `OnSuccess` aciona a função com qualquer retorno.
+
+## D-024 — Escolhas da `fn-certificado` e da `fn-api`
+**Data:** 25/10/2026 · **Origem:** autor · **Status:** Vigente
+
+(1) O envio é **PUT** pré-assinado (o SDK Java v2 não gera POST pré-assinado), com `Content-Type` e
+`Content-Length` assinados; a criptografia vem do padrão do bucket (SSE-S3). (2) As respostas JSON são
+escritas por um escritor mínimo próprio (`Json`) e o corpo de `POST /uploads` é lido por expressão
+regular: evita uma biblioteca só para isso (D-019); `BigDecimal` sai como texto, preservando a escala.
+(3) O nome de exibição não chega à `fn-certificado` pelo envelope: **revisto na D-025**. (4) `GET /calibracoes/{id}`
+não devolve `idOriginal` de duplicata, que pode pertencer a outro usuário. (5) `GET /calibracoes`
+responde 501 até a T12. (6) A porta ganhou `buscarPorToken`, para a rota pública de verificação. (7) O
+JAR sombreado tem 48 MB com a D-025: abaixo do limite de 50 MB de envio direto (o SAM sobe pelo S3), mas sem folga para novas dependências.
+
+## D-025 — Nome de exibição lido do Cognito na emissão
+**Data:** 25/10/2026 · **Origem:** autor · **Status:** Vigente (revê o item 3 da D-024)
+
+O certificado leva "Gerado por: <nome>" (orientação do professor) sem que o nome toque tabela, S3,
+evento ou fila: a `fn-certificado` chama `AdminGetUser` do Cognito com o `sub` do registro e lê o
+atributo `name`, só para desenhar o PDF. Se o usuário não tiver `name`, o PDF leva "Usuário
+autenticado" e a falta aparece na revisão; falha do Cognito sobe como exceção (evento reentregue,
+depois DLQ) e não emite. Alternativa descartada: metadado `x-amz-meta` no PUT repassado pelo retorno
+da `fn-ingestao`, que gravaria o nome no objeto de entrada (retenção de 5 anos, D-004) e o faria
+viajar no payload do destino e na DLQ; além disso o *access token* do Cognito não traz `name`.
+Biblioteca nova, na lista da D-019: `software.amazon.awssdk:cognitoidentityprovider` 2.57.3 (mesma
+versão dos demais módulos do SDK, conferida no Maven Central em 25/10/2026), que levou o JAR de 44 MB a
+48 MB. Requisitos da T08: papel da `fn-certificado` com `cognito-idp:AdminGetUser` só no user pool; variável
+`USER_POOL_ID`; usuários criados com o atributo `name`. Requisito da T09: provar que `AdminGetUser`
+aceita o `sub` como `Username` no pool real.

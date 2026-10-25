@@ -160,6 +160,16 @@ class RepositorioCalibracoesTest {
     }
 
     @Test
+    void buscarPorToken_achaOEnvioEmitidoEIgnoraTokenDesconhecido() {
+        repo.iniciar("e1", SUB, T0);
+        repo.registrarProcessada("e1", HASH_A, 1, resultado(), T0);
+        repo.registrarEmitida("e1", "tok", HASH_B, T0);
+
+        assertThat(repo.buscarPorToken("tok")).map(RegistroCalibracao::id).contains("e1");
+        assertThat(repo.buscarPorToken("outro")).isEmpty();
+    }
+
+    @Test
     void tokenNaoPodeSerReusadoPorOutroEnvio() {
         repo.iniciar("e1", SUB, T0);
         repo.iniciar("e2", SUB, T0);

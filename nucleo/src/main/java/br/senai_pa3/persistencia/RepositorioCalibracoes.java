@@ -73,4 +73,10 @@ public interface RepositorioCalibracoes {
     void registrarEmitida(String id, String token, String sha256Pdf, Instant agora);
 
     Optional<RegistroCalibracao> buscar(String id);
+
+    /**
+     * {@code fn-api}, rota pública de verificação: o envio {@link EstadoCalibracao#EMITIDA} dono
+     * do token, ou vazio se o token não existe.
+     */
+    Optional<RegistroCalibracao> buscarPorToken(String token);
 }

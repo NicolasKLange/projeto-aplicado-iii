@@ -318,7 +318,7 @@ o hash e um enum; PDF de exemplo salvo em `docs/av04/evidencias/` e aberto por v
 
 ---
 
-### [ ] T07 · `fn-certificado` e `fn-api` ★ 🛠 (*plan mode*)
+### [x] T07 · `fn-certificado` e `fn-api` ★ 🛠 (*plan mode*)
 
 **Contexto.** T04–T06, AV02 §3.1 (E1, E2, E6, E10) e §4.1 (tabela de papéis).
 
@@ -341,10 +341,12 @@ o hash e um enum; PDF de exemplo salvo em `docs/av04/evidencias/` e aberto por v
   - Erros em `application/problem+json` (mesmo padrão da AV03); id malformado → 400.
 - Testes unitários dos dois handlers com falsos.
 
-**Aceite.** Testes verdes; nenhuma rota devolve dado de outro `sub`; `./mvnw -pl funcoes -am
+**Aceite.** Testes verdes; o PDF traz "Gerado por: <nome>" lido do Cognito, sem o nome em tabela, evento ou log; nenhuma rota devolve dado de outro `sub`; `./mvnw -pl funcoes -am
 package` gera um único JAR sombreado (`maven-shade-plugin`) sem classes do Spring.
 
 **Relatório.** §3 e §7 (API).
+
+> **Concluída em 25/10.** `FnCertificado` (9 testes: emite, nome do Cognito, rótulo neutro, falha do diretório, envelope sem `calibracaoId`, reentrega, estado errado, falha no S3, ambiente) e `FnApi` (16 testes, 5 rotas + stub 501 de `GET /calibracoes`), `S3UrlsPreassinadas` (2 testes, presigner real); porta com `buscarPorToken`; `maven-shade-plugin` 3.6.2 gera JAR único de 48 MB sem Spring. `./mvnw test`: 149 testes (68 + 15 + 66), 0 falhas. D-024, D-025. **Reaberta e refeita no mesmo dia:** o nome do "Gerado por" vem do Cognito (`AdminGetUser` pelo `sub`) na emissão, sem passar por tabela, S3 ou evento; biblioteca `cognitoidentityprovider` (D-019). **Divergência:** PUT em vez de POST pré-assinado. **Pendente na T08:** `TABELA_CALIBRACOES`, `BUCKET_ENTRADA`, `BUCKET_CERTIFICADOS`, `URL_VERIFICACAO_BASE`, `USER_POOL_ID`, permissão `cognito-idp:AdminGetUser` só para a `fn-certificado`, usuários com atributo `name`; **na T09:** provar `AdminGetUser` com o `sub` como `Username`. Handlers: handlers `br.senai_pa3.api.FnApi::handleRequest` e `br.senai_pa3.certificado.FnCertificado::handleRequest`.
 
 ---
 
@@ -581,7 +583,7 @@ sem `UpdateItem`/`DeleteItem` nela.
 | T04    | 🧑‍🏫→🛠 | Concluída | Porta + adaptador em memória; 82 testes verdes; D-021; falta provar no DynamoDB (T06) |
 | T05    | 🛠   | Concluída | PDF com QR; 85 testes verdes; divergência de PV-14 (layout simplificado) |
 | T06    | 🧑‍🏫   | Concluída | Handler + adaptador DynamoDB; 102 testes verdes; D-023; falta provar o DynamoDB real (T09) |
-| T07    | 🛠   | Pendente |            |
+| T07    | 🛠   | Concluída | fn-certificado + fn-api; 143 testes verdes; D-024; JAR sombreado 48 MB; nome via Cognito (D-025) |
 | T08    | 🛠   | Pendente |            |
 | T09    | 🛠   | Pendente |            |
 | T10    | 🛠   | Pendente |            |

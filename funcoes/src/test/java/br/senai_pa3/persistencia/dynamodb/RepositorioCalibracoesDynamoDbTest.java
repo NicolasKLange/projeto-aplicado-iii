@@ -200,4 +200,16 @@ class RepositorioCalibracoesDynamoDbTest {
         assertThatThrownBy(() -> repo.registrarEmitida("u-1", "tok", "b".repeat(64), AGORA))
                 .isInstanceOf(IllegalStateException.class);
     }
+
+    @Test
+    void buscarPorToken_leSentinelaEDepoisOMeta() {
+        leitura = r -> r.key().get("PK").s().equals("TOKEN#tok")
+                ? GetItemResponse.builder().item(Map.of("calId", AttributeValue.fromS("u-1"))).build()
+                : GetItemResponse.builder().build();
+
+        assertThat(repo.buscarPorToken("tok")).isEmpty(); // sentinela achou, META não existe
+        assertThat(requisicoes).extracting(r -> ((GetItemRequest) r).key().get("PK").s())
+                .containsExactly("TOKEN#tok", "CAL#u-1");
+        assertThat(repo.buscarPorToken("nenhum")).isEmpty();
+    }
 }

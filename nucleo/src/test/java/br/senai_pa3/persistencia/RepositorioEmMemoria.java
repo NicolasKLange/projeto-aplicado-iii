@@ -80,6 +80,11 @@ public class RepositorioEmMemoria implements RepositorioCalibracoes {
         return Optional.ofNullable(calibracoes.get(id));
     }
 
+    @Override
+    public synchronized Optional<RegistroCalibracao> buscarPorToken(String token) {
+        return Optional.ofNullable(sentinelasToken.get(token)).map(calibracoes::get);
+    }
+
     private ResultadoRegistro registrar(String id, String sha256, java.util.function.Function<RegistroCalibracao,
             RegistroCalibracao> novo, long tamanhoBytes, Instant agora) {
         RegistroCalibracao atual = obrigatorio(id);

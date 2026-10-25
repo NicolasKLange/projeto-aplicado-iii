@@ -131,6 +131,11 @@ public class RepositorioCalibracoesDynamoDb implements RepositorioCalibracoes {
         return item == null || item.isEmpty() ? Optional.empty() : Optional.of(MapeadorItemCalibracao.deItem(item));
     }
 
+    @Override
+    public Optional<RegistroCalibracao> buscarPorToken(String token) {
+        return donoDa(PREFIXO_TOKEN + token).flatMap(this::buscar);
+    }
+
     private ResultadoRegistro registrar(String id, String sha256, long tamanhoBytes, EstadoCalibracao novo,
             String atributo, Map<String, AttributeValue> extras, Instant agora) {
         Map<String, AttributeValue> valores = new HashMap<>(extras);
