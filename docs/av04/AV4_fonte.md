@@ -41,6 +41,8 @@ Divergências em relação à AV02 §3.2.2 (D-021, `docs/av04/modelo-dados.md`):
 
 Divergência de PV-14: o layout é simplificado, não reproduz o certificado da Schulz. Teste: gera o PDF de `ok-reprovado.xlsx` e confere com `PDFTextStripper` o parecer `REPROVADO`, o hash, `FORA_DA_TOLERANCIA`, o usuário e o token; outro caso cobre `APROVADO`. Evidência: `docs/av04/evidencias/certificado-ok-reprovado.pdf` (planilha sintética). Print do PDF aberto: `docs/av04/evidencias/tela/relatorio-pdf.png`.
 
+**Projeto React e login (T10).** O front-end fica em `web/` (Vite 8.3.5, React 19.3.1), sem biblioteca de roteamento nem de estado: o estado da sessão é um `useState` e a rota pública `/verificar/<token>` é reconhecida por `location.pathname` (tela na T14). A configuração (URL da API, id do cliente do Cognito, região) vem de `import.meta.env`, gerada pelo script `infra/gerar-env-web.sh` a partir das saídas do stack; o `.env` não vai ao Git. O login é um `fetch` direto à API HTTP do Cognito (`InitiateAuth`, `USER_PASSWORD_AUTH`), sem SDK: a senha sai do navegador para o Cognito por HTTPS e nunca passa pela aplicação (AV02 §4.3). O token usado é o ID token, porque o autorizador JWT da API confere `aud`. A tela mostra o `name` do próprio token, apenas para exibição; a validação é da API. Verificado no Chrome contra o Cognito real (`docs/av04/evidencias/tela/t10-login.jpg`).
+
 ## 6. Roteiro de deploy na AWS
 
 **Pré-requisitos (T02, 24 e 25/10/2026).** AWS CLI v2.36.40, SAM CLI 1.170.0, Node v24.11.1 / npm 11.6.2 e JDK 21 (Temurin 21.0.10) instalados e conferidos. Na conta definitiva, credenciais só no perfil `pa3` do AWS CLI, região `us-east-2`, com o usuário IAM `pa3-deploy` (`AdministratorAccess`, sem senha de console, só access key). Verificação em 25/10/2026: `aws sts get-caller-identity --profile pa3` devolve o ARN `user/pa3-deploy` e `aws dynamodb list-tables` em `us-east-2` devolve lista vazia, sem negação da SCP. `.gitignore` com `.aws-sam/` e `.claude/commands/` versionável.
@@ -56,6 +58,8 @@ Divergência de PV-14: o layout é simplificado, não reproduz o certificado da 
 **API (T07).** Todas as rotas, exceto `GET /verificacao/{token}`, dependem do autorizador JWT (T08) e usam como dono apenas o `sub` do token. Um envio alheio é indistinguível de um inexistente (404 idêntico, teste compara os corpos), o `idOriginal` de uma duplicata não é exposto e o log carrega só `uploadId`, SHA-256, tamanho e resultado (teste confere que `sub`, URL e chave não aparecem). A rota pública não devolve `sub` nem nome. O token de verificação tem 32 caracteres alfanuméricos sorteados com `SecureRandom` (cerca de 190 bits), e valor fora do formato responde 404 sem consultar a tabela.
 
 **Região e transferência internacional (D-022).** Com `us-east-2`, os dados processados ficam nos EUA, o que configura transferência internacional (LGPD, art. 33). A PoC só processa planilhas sintéticas ou sanitizadas, sem dado pessoal, então a transferência não alcança dado pessoal. Em produção, a recomendação é `sa-east-1` em conta no plano pago.
+
+**Sessão no navegador (T10).** Os tokens ficam só em memória (estado React), nunca em `localStorage`, `sessionStorage` ou cookie: um script injetado (XSS) não encontra token gravado para ler depois, e o token não sobrevive a recarregar a página, que pede login de novo (declarado como escolha de segurança, não como defeito). Em memória o token ainda é visível a um script que rode durante a sessão, então a mitigação reduz a janela de exposição, não elimina o XSS. A mensagem de erro de login é a mesma para e-mail inexistente e senha errada (com `PreventUserExistenceErrors` o Cognito já responde igual) e o campo de senha é limpo após a falha. Resposta 200 sem token (desafio `NEW_PASSWORD_REQUIRED`) é tratada como falha de login.
 
 ## 8. Custo e Free Tier
 
@@ -85,6 +89,8 @@ Log da `fn-ingestao` no CloudWatch (`log-fn-ingestao.txt`): cada execução regi
 **Segundo fator de autenticação (T08).** O user pool não exige MFA, embora a AV02 (§4.2.3) o previsse para os clientes internos. A disponibilidade e o custo do TOTP no plano do Cognito não foram verificados; fica como limitação da PoC e como item de produção.
 
 **Arquivamento de objetos pequenos (T08).** A regra de ciclo de vida transiciona para `GLACIER_IR` aos 365 dias, mas o S3 não transiciona por padrão objetos menores que 128 KB: os PDFs (cerca de 4 KB) apenas expiram em 1 825 dias, e só as planilhas (cerca de 200 KB) são arquivadas. Mantido assim por escolha: forçar a transição de objetos tão pequenos custaria tarifa por objeto e cobrança mínima de 128 KB sem economia real no volume da Schulz (12 certificados por mês).
+
+**Troca de senha no primeiro acesso (T10).** A tela não trata o desafio `NEW_PASSWORD_REQUIRED`: o administrador cria usuários com senha definitiva e o usuário que cair no desafio vê a mensagem genérica de login inválido. Em produção, o fluxo de troca de senha e o MFA entram juntos.
 
 ## 12. Premissas e pontos a validar
 

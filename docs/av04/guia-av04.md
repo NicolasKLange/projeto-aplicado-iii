@@ -413,7 +413,7 @@ hash e tamanho. **Marco de domingo: se isso passa, a AV04 está garantida.**
 
 ## Fase 3 — Plataforma web
 
-### [ ] T10 · Projeto React e login ★ 🛠 / 🧑‍🏫 (fluxo de token) 🔒
+### [x] T10 · Projeto React e login ★ 🛠 / 🧑‍🏫 (fluxo de token) 🔒
 
 **Contexto.** `app-local/.../static/` (tela da AV03: reaproveitar comportamento, cores e rótulos),
 saídas do stack.
@@ -433,6 +433,8 @@ saídas do stack.
 sem detalhe técnico.
 
 **Relatório.** §5 (Plataforma) e §7 (Segurança).
+
+> **Concluída em 25/10.** `web/` com Vite 8.3.5, React/React DOM 19.3.1 e `@vitejs/plugin-react` 6.1.2 (versões do npm no dia); `infra/gerar-env-web.sh` gera `web/.env` (fora do Git) das saídas do stack. `src/cognito.js` (escrita pelo Rodrigo) faz `InitiateAuth` com `fetch`, devolve o **ID token** (o autorizador confere `aud`) e trata rede, JSON inválido, HTTP de erro e 200 com desafio (`NEW_PASSWORD_REQUIRED`, mapeado a erro genérico). Provado no Chrome contra o Cognito real: senha errada mostra "Usuário ou senha inválidos." e limpa o campo; senha certa mostra o nome do usuário (`name` do ID token); recarregar pede login de novo; token só em memória (`localStorage` sem JWT; as chaves `vagas`/`selected_person` que apareceram são de outro projeto na mesma origem `localhost:5173`). Usuário de teste apagado. Evidência: `docs/av04/evidencias/tela/t10-login.jpg`. `./mvnw test`: 149 testes, 0 falhas; `npm run build` verde. **Limitações:** desafio de troca de senha não tem tela (usuários nascem com `--permanent`); sem MFA (§11).
 
 ---
 
@@ -591,7 +593,7 @@ sem `UpdateItem`/`DeleteItem` nela.
 | T07    | 🛠   | Concluída | fn-certificado + fn-api; 143 testes verdes; D-024; JAR sombreado 48 MB; nome via Cognito (D-025) |
 | T08    | 🛠   | Concluída | Stack `pa3-av04` `CREATE_COMPLETE`; sem CloudFront (D-026); IAM delegado |
 | T09    | 🛠   | Concluída | `infra/smoke.sh`: 6 cenários na nuvem passam; DynamoDB real provado; ID token no autorizador |
-| T10    | 🛠   | Pendente |            |
+| T10    | 🛠/🧑‍🏫 | Concluída | `web/` com login no Cognito real (ID token em memória); `cognito.js` do Rodrigo; testado no Chrome |
 | T11    | 🛠   | Pendente |            |
 | T12    | 🛠   | Pendente |            |
 | T13    | 🛠   | Pendente |            |

@@ -1,0 +1,274 @@
+/*
+ * Contraste conferido contra WCAG 2.1 AA (texto ≥ 4,5:1):
+ * status ok #14532d/#dcfce7 = 8,3:1; falha #7f1d1d/#fee2e2 = 8,2:1;
+ * botão #fff/#1d4ed8 = 6,7:1 (desabilitado #fff/#6b7280 = 4,8:1); texto secundário #4b5563/#f8fafc = 7,2:1.
+ * A cor só reforça: o enum e o rótulo estão sempre escritos.
+ */
+:root {
+  --fundo: #f8fafc;
+  --superficie: #ffffff;
+  --texto: #1f2937;
+  --secundario: #4b5563;
+  --borda: #d1d5db;
+  --cabecalho: #f1f5f9;
+  --primaria: #1d4ed8;
+  --primaria-escura: #1e3a8a;
+  --desabilitado: #6b7280;
+  --ok-texto: #14532d;
+  --ok-fundo: #dcfce7;
+  --ok-borda: #15803d;
+  --falha-texto: #7f1d1d;
+  --falha-fundo: #fee2e2;
+  --falha-borda: #b91c1c;
+  --info-texto: #1e3a8a;
+  --info-fundo: #eff6ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+}
+
+main {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+
+h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.75rem;
+}
+
+h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.125rem;
+}
+
+.secundario {
+  margin: 0 0 1.5rem;
+  color: var(--secundario);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.cartao {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: 0.5rem;
+}
+
+/* Formulário */
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.linha-envio {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+input[type="file"] {
+  flex: 1 1 18rem;
+  min-width: 0;
+  font: inherit;
+}
+
+button {
+  padding: 0.55rem 1.25rem;
+  font: inherit;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--primaria);
+  border: 0;
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: var(--primaria-escura);
+}
+
+button:disabled {
+  background: var(--desabilitado);
+  cursor: progress;
+}
+
+:focus-visible {
+  outline: 3px solid var(--primaria);
+  outline-offset: 2px;
+}
+
+/* Região de mensagens (aria-live) */
+
+.mensagem:empty {
+  display: none;
+}
+
+.mensagem {
+  margin: 0 0 1.5rem;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--primaria);
+  border-radius: 0.25rem;
+  color: var(--info-texto);
+  background: var(--info-fundo);
+}
+
+.mensagem.erro {
+  border-left-color: var(--falha-borda);
+  color: var(--falha-texto);
+  background: var(--falha-fundo);
+}
+
+.mensagem code {
+  font-weight: 700;
+  user-select: all;
+}
+
+/* Parecer */
+
+.parecer {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  border: 2px solid var(--borda);
+  border-radius: 0.5rem;
+  background: var(--superficie);
+}
+
+.parecer h2 {
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.parecer-valor {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  align-items: baseline;
+}
+
+.parecer .enum {
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.parecer .rotulo {
+  font-size: 1.125rem;
+}
+
+.parecer.ok {
+  border-color: var(--ok-borda);
+  color: var(--ok-texto);
+  background: var(--ok-fundo);
+}
+
+.parecer.falha {
+  border-color: var(--falha-borda);
+  color: var(--falha-texto);
+  background: var(--falha-fundo);
+}
+
+/* Tabelas */
+
+.rolagem {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+caption {
+  margin-bottom: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+}
+
+th,
+td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--borda);
+}
+
+th {
+  background: var(--cabecalho);
+  white-space: nowrap;
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.enum {
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-weight: 700;
+}
+
+.status {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid;
+  border-radius: 0.25rem;
+  white-space: nowrap;
+}
+
+.status .rotulo {
+  display: block;
+  font-size: 0.8125rem;
+}
+
+.status.ok {
+  border-color: var(--ok-borda);
+  color: var(--ok-texto);
+  background: var(--ok-fundo);
+}
+
+.status.falha {
+  border-color: var(--falha-borda);
+  color: var(--falha-texto);
+  background: var(--falha-fundo);
+}
+
+.erros h2 {
+  color: var(--falha-texto);
+}
+
+/* Login (T10) */
+input[type="email"],
+input[type="password"] {
+  display: block;
+  width: 100%;
+  max-width: 24rem;
+  margin: 0.25rem 0 1rem;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  color: var(--texto);
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: 0.375rem;
+}
