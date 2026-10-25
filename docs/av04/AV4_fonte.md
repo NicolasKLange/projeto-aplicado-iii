@@ -54,7 +54,7 @@ Verificado no Chrome em 25/10/2026, com `npm run dev` contra o stack real:
 - `inv-multiplos-erros.xlsx` deu `REJEITADA`, com R10, R11 e R14;
 - o reenvio do `ok-reprovado.xlsx` deu `DUPLICADA`;
 - trocar de arquivo limpou o resultado anterior;
-- o PDF baixado (4 551 bytes, `%PDF-`) tem SHA-256 igual ao `sha256Pdf` gravado no DynamoDB.
+- o PDF baixado pelo botão (4 551 bytes, `%PDF-`) tem SHA-256 igual ao `sha256Pdf` gravado no DynamoDB, tanto no *blob* entregue ao navegador quanto no arquivo salvo (`docs/av04/evidencias/certificado-3843b8f4-c7d3-4f1f-94ac-46ccf0115b9b.pdf`).
 
 RNF-15: em 768 px de largura, botões e campo de arquivo têm 44 px de altura, a página não rola na horizontal e a tabela de pontos cabe inteira: abaixo de 52rem, o selo de status quebra após "_" (`<wbr>`, sem alterar o texto do enum) e o espaçamento das células diminui. O contraste dos pares novos foi calculado pela fórmula da WCAG 2.1, todos acima de 4,5:1 (botão secundário 5,5:1 a 6,7:1). Prints: `docs/av04/evidencias/tela/t11-1-enviando.jpg` a `t11-7-tablet-768.jpg`.
 
