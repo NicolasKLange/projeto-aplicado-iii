@@ -350,7 +350,7 @@ package` gera um único JAR sombreado (`maven-shade-plugin`) sem classes do Spri
 
 ---
 
-### [ ] T08 · Template SAM e deploy do back-end ★ 🛠 (*plan mode*) / 🧑‍🏫 (IAM) 🔒
+### [x] T08 · Template SAM e deploy do back-end ★ 🛠 (*plan mode*) 🔒
 
 **Contexto.** AV02 §1.2, §2 (cotas) e §4 (IAM, criptografia), D-004, D-007, D-008, D-009, D-016,
 D-020.
@@ -369,8 +369,9 @@ D-020.
   `ALLOW_REFRESH_TOKEN_AUTH`, token de acesso de 60 min (RNF-05).
 - **HTTP API:** autorizador JWT do Cognito em todas as rotas exceto `GET /verificacao/{token}`,
   CORS, *throttling* (AV02: 10 req/s).
-- 🧑‍🏫 **IAM:** um papel por função, só as ações da AV02 §4.1 (ex.: `fn-ingestao` com `s3:GetObject`
-  só em `uploads/*`). Você escreve as políticas; o Claude revisa.
+- **IAM:** um papel por função, só as ações da AV02 §4.1 (ex.: `fn-ingestao` com `s3:GetObject`
+  só em `uploads/*`; `fn-certificado` com `cognito-idp:AdminGetUser` só no user pool, D-025). Modo
+  alterado de instrutivo para delegado em 25/10: o Claude escreve; você revisa cada política.
 - **Saídas** do stack: URL da API, URL do CloudFront, ids do user pool e do cliente.
 
 Deploy: `sam deploy --guided --profile pa3 --region us-east-2` (D-022) na primeira vez.
@@ -379,6 +380,8 @@ Deploy: `sam deploy --guided --profile pa3 --region us-east-2` (D-022) na primei
 sem DynamoDB sob demanda); `aws s3api get-bucket-lifecycle-configuration` mostra a regra.
 
 **Relatório.** §6 (Roteiro de deploy) e §4.
+
+> **Concluída em 25/10.** `infra/template.yaml` + `infra/deploy.sh`; stack `pa3-av04` em `CREATE_COMPLETE` (us-east-2, perfil `pa3`) com 31 recursos: 3 buckets S3 + políticas, tabela `calibracoes` (5/5 + GSI2 5/5), 3 funções `java21` + 3 log groups + 3 papéis, 2 `EventInvokeConfig`, fila de falhas, user pool + cliente, HTTP API; sem NAT, KMS, WAF, EC2 nem CloudFront (D-026: o plano gratuito exige WAF em `us-east-1`; resolver na T10). `aws s3api get-bucket-lifecycle-configuration` mostra `GLACIER_IR` aos 365 dias e expiração aos 1 825. `./mvnw test`: 149 testes, 0 falhas. **Limitações registradas (§11):** sem MFA; PDFs de ~4 KB não transicionam. **Para a T09:** criar usuário com `name` e provar `AdminGetUser` com o `sub`; saída `FilaFalhas` passou a mostrar só o nome da fila (a URL trazia o número da conta; vale no próximo deploy). `infra/deploy.sh` precisa de `CONFIRMAR_CHANGESET=nao` quando rodado com `!`.
 
 ---
 
@@ -584,7 +587,7 @@ sem `UpdateItem`/`DeleteItem` nela.
 | T05    | 🛠   | Concluída | PDF com QR; 85 testes verdes; divergência de PV-14 (layout simplificado) |
 | T06    | 🧑‍🏫   | Concluída | Handler + adaptador DynamoDB; 102 testes verdes; D-023; falta provar o DynamoDB real (T09) |
 | T07    | 🛠   | Concluída | fn-certificado + fn-api; 143 testes verdes; D-024; JAR sombreado 48 MB; nome via Cognito (D-025) |
-| T08    | 🛠   | Pendente |            |
+| T08    | 🛠   | Concluída | Stack `pa3-av04` `CREATE_COMPLETE`; sem CloudFront (D-026); IAM delegado |
 | T09    | 🛠   | Pendente |            |
 | T10    | 🛠   | Pendente |            |
 | T11    | 🛠   | Pendente |            |

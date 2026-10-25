@@ -287,3 +287,19 @@ versão dos demais módulos do SDK, conferida no Maven Central em 25/10/2026), q
 48 MB. Requisitos da T08: papel da `fn-certificado` com `cognito-idp:AdminGetUser` só no user pool; variável
 `USER_POOL_ID`; usuários criados com o atributo `name`. Requisito da T09: provar que `AdminGetUser`
 aceita o `sub` como `Username` no pool real.
+
+## D-026 — CloudFront fora do template da T08
+**Data:** 25/10/2026 · **Origem:** autor · **Status:** Vigente
+
+O plano gratuito do CloudFront (D-016) é um recurso à parte, `AWS::PricingPlanManager::Subscription`
+com `PlanFamily: CloudFront` e `PlanTier: FREE`. A documentação exige em `ResourceArns` um ARN de
+distribuição **e** o de um AWS WAF web ACL (WAFv2, escopo `CLOUDFRONT`), e manda implantar em `us-east-1`,
+onde esse escopo existe. A conta tem SCP que só libera `us-east-2` (D-022) e o WAF não está na lista de
+recursos aprovados; uma distribuição sem o plano ficaria em cobrança por uso, o que fere o custo
+R$ 0,00. Por isso o `infra/template.yaml` cria o bucket `web` privado e **não** cria distribuição, OAC
+nem plano; a T10 resolve o CloudFront (ou registra a alternativa) com a conta real. Os parâmetros
+`OrigensWeb` (CORS) e `UrlVerificacaoBase` (QR Code) recebem o domínio da distribuição depois. Fontes:
+https://docs.aws.eu/AWSCloudFormation/latest/TemplateReference/aws-resource-pricingplanmanager-subscription.html
+e https://aws.amazon.com/about-aws/whats-new/2026/09/cloudfront-flat-rate-pricing-plans-api/
+(consultadas em 25/10/2026). Não verifiquei se a SCP bloqueia o WAF em `us-east-1`; é a primeira
+coisa a testar na T10.

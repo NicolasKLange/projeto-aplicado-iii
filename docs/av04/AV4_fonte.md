@@ -33,6 +33,8 @@ O id do upload é o id da calibração: a `fn-api` grava o envio em `PROCESSANDO
 
 Divergências em relação à AV02 §3.2.2 (D-021, `docs/av04/modelo-dados.md`): sem item `ARQ#` (o nome original do arquivo não é gravado, só `sha256` e tamanho), resultado embutido no item principal, estados reduzidos, GSI2 por usuário em vez de por estado (a fila de aprovação ficou fora, D-018) e sem GSI1. O registro Java recusa combinações incoerentes, como `REJEITADA` com resultado. Teste: adaptador em memória e 11 casos (mesmo hash duas vezes, hash diferente, evento repetido, rejeitada sem dado de negócio, reenvio da planilha rejeitada, emissão e unicidade do token). A prova contra o DynamoDB real fica para a T06, quando a conta AWS estiver liberada.
 
+**Capacidade do DynamoDB (T08).** Modo provisionado: 5 RCU/5 WCU na tabela e 5/5 no GSI2, 10 de 25 em cada eixo, com folga para a tabela `auditoria` opcional.
+
 ## 5. Plataforma Web
 
 **Certificado gerado (T05).** A classe `GeradorCertificado` (`funcoes`, Apache PDFBox 3.0.8) recebe o cálculo pronto do núcleo e os metadados (`DadosCertificado`) e devolve `byte[]`. O PDF traz identificador, data e hora em America/Sao_Paulo, SHA-256 da planilha de origem, "Gerado por: <usuário autenticado>" (D-003: a autoria é a autenticação, com o hash garantindo a integridade), a tabela de pontos (leituras, referência, média, erro, LEA e status com os enums literais), o parecer em destaque, o token e a URL de verificação, esta também em QR Code (ZXing `core` 3.5.4; a matriz é desenhada como retângulos no PDFBox, sem o módulo `javase`). Números em 5 casas só na exibição; leituras como lidas. O nome de exibição existe só no PDF, e caracteres fora do WinAnsi viram `?` em vez de derrubar a emissão. Rodapé: "Documento gerado por PoC acadêmica (UniSENAI, Projeto Aplicado III) — sem validade metrológica".
@@ -46,6 +48,8 @@ Divergência de PV-14: o layout é simplificado, não reproduz o certificado da 
 **Bloqueio encontrado.** Leituras de baixo risco (`lambda list-functions`, `dynamodb list-tables`, `cloudformation list-stacks`, `cognito-idp list-user-pools`) com o perfil `pa3` foram negadas em `sa-east-1` e `us-east-1` com *explicit deny in a service control policy* e funcionaram em `us-east-2`. O `describe-organization` mostrou que a conta é membro de uma AWS Organization com SCP ativa; o MFA da raiz e do usuário IAM não pôde ser configurado (IAM negado pela SCP; página de credenciais indisponível). Depois disso a conta original foi suspensa e uma segunda conta não obteve o plano gratuito, por cruzamento de dados de cadastro. Caso aberto no AWS Support.
 
 **Conta definitiva e região (25/10/2026, D-022).** Uma conta nova obteve o plano gratuito (US$ 100 em créditos, válido até 24/04/2027). Ela está na "nova experiência AWS", em que cada projeto é uma conta-membro de uma Organization gerenciada pela própria AWS; a mesma SCP só libera serviços regionais em `us-east-2`, o que explica o bloqueio anterior. No console, Lambda, S3, DynamoDB, Cognito, API Gateway e CloudFormation abrem em `us-east-2`; CloudFront e Budgets, globais, também. O deploy passa a usar `us-east-2`. O login no console é pelo AWS Builder ID, que assume um papel gerenciado na conta, com MFA no próprio Builder ID, e o acesso programático é um usuário IAM dedicado (`pa3-deploy`) no perfil `pa3`.
+
+**Template e primeiro deploy (T08).** O back-end é um único stack SAM, `infra/template.yaml`, publicado por `infra/deploy.sh` (`./mvnw package`, `sam validate --lint` e `sam deploy --profile pa3 --region us-east-2`). O `sam build` não resolve o módulo `nucleo`, então o `CodeUri` aponta para o JAR sombreado, e o script o gera antes. Os nomes dos buckets levam um sufixo do `StackId`, sem número de conta, e o papel da `fn-ingestao` monta o ARN do bucket de entrada pelo nome para evitar o ciclo bucket → notificação → função → papel → bucket. O primeiro `sam deploy` abortou duas vezes por pedir confirmação do *changeset*, que não funciona num terminal sem teclado; o script ganhou `CONFIRMAR_CHANGESET=nao`, usado depois de revisar a lista de recursos. O stack chegou a `CREATE_COMPLETE` com 31 recursos, e a lista de tipos confere com a prevista (S3, DynamoDB, Lambda, SQS, Cognito, Logs, IAM e HTTP API), sem NAT Gateway, KMS, WAF, EC2 nem CloudFront. `aws s3api get-bucket-lifecycle-configuration` nos buckets confirma a regra: `GLACIER_IR` aos 365 dias, expiração aos 1 825, versões antigas em 30 dias e uploads incompletos abortados em 7. O CloudFront ficou fora (D-026): o plano gratuito exige um WAF em `us-east-1`, região negada pela SCP desta conta (D-022). O bucket gerenciado `aws-sam-cli-managed-default-samclisourcebucket-…` guarda apenas o JAR e o template.
 
 ## 7. Segurança e LGPD
 
@@ -62,6 +66,10 @@ Divergência de PV-14: o layout é simplificado, não reproduz o certificado da 
 ## 10. Matriz de Rastreabilidade de Requisitos
 
 ## 11. Limitações e roadmap
+
+**Segundo fator de autenticação (T08).** O user pool não exige MFA, embora a AV02 (§4.2.3) o previsse para os clientes internos. A disponibilidade e o custo do TOTP no plano do Cognito não foram verificados; fica como limitação da PoC e como item de produção.
+
+**Arquivamento de objetos pequenos (T08).** A regra de ciclo de vida transiciona para `GLACIER_IR` aos 365 dias, mas o S3 não transiciona por padrão objetos menores que 128 KB: os PDFs (cerca de 4 KB) apenas expiram em 1 825 dias, e só as planilhas (cerca de 200 KB) são arquivadas. Mantido assim por escolha: forçar a transição de objetos tão pequenos custaria tarifa por objeto e cobrança mínima de 128 KB sem economia real no volume da Schulz (12 certificados por mês).
 
 ## 12. Premissas e pontos a validar
 

@@ -1,0 +1,510 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >-
+  Certificados de calibração (Projeto Aplicado III, AV04): S3, DynamoDB provisionado, três funções Lambda
+  java21, Cognito, HTTP API e IAM por função. O CloudFront e o plano gratuito ficam para a T10.
+
+Parameters:
+  OrigensWeb:
+    Type: CommaDelimitedList
+    Default: http://localhost:5173
+    Description: Origens do front-end (CORS do bucket de entrada e do HTTP API). Na T10 entra a URL do CloudFront.
+  UrlVerificacaoBase:
+    Type: String
+    Default: http://localhost:5173
+    Description: Base da URL do QR Code (https://<cloudfront>); a rota é /verificar/<token>.
+
+Globals:
+  Function:
+    Runtime: java21
+    MemorySize: 1024
+    Timeout: 30
+
+Resources:
+  # ---------------------------------------------------------------- S3
+  # Os nomes levam um sufixo do StackId (sem número de conta). O papel da fn-ingestao monta o ARN do bucket
+  # de entrada pelo nome: referenciar o bucket criaria um ciclo (bucket → notificação → função → papel → bucket).
+  BucketEntrada:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub
+        - ${AWS::StackName}-entrada-${Sufixo}
+        - Sufixo: !Select [2, !Split ['/', !Ref 'AWS::StackId']]
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: arquivo-e-expiracao
+            Status: Enabled
+            Transitions:
+              - StorageClass: GLACIER_IR
+                TransitionInDays: 365
+            ExpirationInDays: 1825
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 30
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins: !Ref OrigensWeb
+            AllowedMethods: [PUT]
+            AllowedHeaders: ['*']
+            MaxAge: 600
+
+  BucketEntradaPolitica:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref BucketEntrada
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !GetAtt BucketEntrada.Arn
+              - !Sub '${BucketEntrada.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: 'false'
+
+  BucketCertificados:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub
+        - ${AWS::StackName}-certificados-${Sufixo}
+        - Sufixo: !Select [2, !Split ['/', !Ref 'AWS::StackId']]
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: arquivo-e-expiracao
+            Status: Enabled
+            Transitions:
+              - StorageClass: GLACIER_IR
+                TransitionInDays: 365
+            ExpirationInDays: 1825
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 30
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins: !Ref OrigensWeb
+            AllowedMethods: [GET]
+            AllowedHeaders: ['*']
+            MaxAge: 600
+
+  BucketCertificadosPolitica:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref BucketCertificados
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !GetAtt BucketCertificados.Arn
+              - !Sub '${BucketCertificados.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: 'false'
+
+  # Privado; a política do OAC e a distribuição entram na T10.
+  BucketWeb:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub
+        - ${AWS::StackName}-web-${Sufixo}
+        - Sufixo: !Select [2, !Split ['/', !Ref 'AWS::StackId']]
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  BucketWebPolitica:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref BucketWeb
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !GetAtt BucketWeb.Arn
+              - !Sub '${BucketWeb.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: 'false'
+
+  # ---------------------------------------------------------------- DynamoDB
+  # Provisionado (D-007): tabela 5/5 + GSI2 5/5, dentro das 25 RCU/WCU. Chave padrão da AWS (D-009).
+  TabelaCalibracoes:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${AWS::StackName}-calibracoes
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      AttributeDefinitions:
+        - { AttributeName: PK, AttributeType: S }
+        - { AttributeName: SK, AttributeType: S }
+        - { AttributeName: GSI2PK, AttributeType: S }
+        - { AttributeName: GSI2SK, AttributeType: S }
+      KeySchema:
+        - { AttributeName: PK, KeyType: HASH }
+        - { AttributeName: SK, KeyType: RANGE }
+      GlobalSecondaryIndexes:
+        - IndexName: GSI2
+          KeySchema:
+            - { AttributeName: GSI2PK, KeyType: HASH }
+            - { AttributeName: GSI2SK, KeyType: RANGE }
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+
+  # ---------------------------------------------------------------- SQS (só fila de falhas, D-008)
+  FilaFalhas:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub ${AWS::StackName}-falhas
+      SqsManagedSseEnabled: true
+      MessageRetentionPeriod: 1209600
+
+  # ---------------------------------------------------------------- Cognito
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub ${AWS::StackName}-usuarios
+      UsernameAttributes: [email]
+      AutoVerifiedAttributes: [email]
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 12
+          RequireLowercase: true
+          RequireUppercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+      Schema:
+        - Name: email
+          Required: true
+          Mutable: true
+        - Name: name
+          Required: false
+          Mutable: true
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref UserPool
+      ClientName: !Sub ${AWS::StackName}-web
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      PreventUserExistenceErrors: ENABLED
+      AccessTokenValidity: 60
+      IdTokenValidity: 60
+      RefreshTokenValidity: 1
+      TokenValidityUnits:
+        AccessToken: minutes
+        IdToken: minutes
+        RefreshToken: days
+
+  # ---------------------------------------------------------------- HTTP API
+  Api:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: !Ref OrigensWeb
+        AllowMethods: [GET, POST, OPTIONS]
+        AllowHeaders: [Authorization, Content-Type]
+        MaxAge: 600
+      DefaultRouteSettings:
+        ThrottlingRateLimit: 10
+        ThrottlingBurstLimit: 20
+      Auth:
+        DefaultAuthorizer: Cognito
+        Authorizers:
+          Cognito:
+            IdentitySource: $request.header.Authorization
+            JwtConfiguration:
+              issuer: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}
+              audience:
+                - !Ref UserPoolClient
+
+  # ---------------------------------------------------------------- Logs (retenção de 30 dias)
+  LogsFnApi:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AWS::StackName}-fn-api
+      RetentionInDays: 30
+
+  LogsFnIngestao:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AWS::StackName}-fn-ingestao
+      RetentionInDays: 30
+
+  LogsFnCertificado:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AWS::StackName}-fn-certificado
+      RetentionInDays: 30
+
+  # ---------------------------------------------------------------- IAM: um papel por função (AV02 §4.1.3)
+  PapelFnApi:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: fn-api
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: Logs
+                Effect: Allow
+                Action: [logs:CreateLogStream, logs:PutLogEvents]
+                Resource: !Sub '${LogsFnApi.Arn}:*'
+              # Só para assinar: a função não lê planilhas nem grava PDFs.
+              - Sid: AssinarEnvio
+                Effect: Allow
+                Action: s3:PutObject
+                Resource: !Sub '${BucketEntrada.Arn}/uploads/*'
+              - Sid: AssinarDownload
+                Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub '${BucketCertificados.Arn}/certificados/*'
+              # PutItem cria o envio; Query serve à lista do usuário (GSI2, T12). Sem Scan nem Delete.
+              - Sid: Calibracoes
+                Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:Query]
+                Resource:
+                  - !GetAtt TabelaCalibracoes.Arn
+                  - !Sub '${TabelaCalibracoes.Arn}/index/GSI2'
+
+  PapelFnIngestao:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: fn-ingestao
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: Logs
+                Effect: Allow
+                Action: [logs:CreateLogStream, logs:PutLogEvents]
+                Resource: !Sub '${LogsFnIngestao.Arn}:*'
+              # Pelo nome, não por !GetAtt: evita o ciclo com a notificação do bucket.
+              - Sid: LerPlanilhas
+                Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub
+                  - arn:${AWS::Partition}:s3:::${AWS::StackName}-entrada-${Sufixo}/uploads/*
+                  - Sufixo: !Select [2, !Split ['/', !Ref 'AWS::StackId']]
+              # TransactWriteItems exige as ações de Put e Update de cada item. Sem Scan nem Delete.
+              - Sid: Calibracoes
+                Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem]
+                Resource: !GetAtt TabelaCalibracoes.Arn
+              # O destino do Lambda usa o papel da função de origem.
+              - Sid: DestinoSucesso
+                Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt FnCertificado.Arn
+              - Sid: DestinoFalha
+                Effect: Allow
+                Action: sqs:SendMessage
+                Resource: !GetAtt FilaFalhas.Arn
+
+  PapelFnCertificado:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: fn-certificado
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: Logs
+                Effect: Allow
+                Action: [logs:CreateLogStream, logs:PutLogEvents]
+                Resource: !Sub '${LogsFnCertificado.Arn}:*'
+              - Sid: GravarPdf
+                Effect: Allow
+                Action: s3:PutObject
+                Resource: !Sub '${BucketCertificados.Arn}/certificados/*'
+              - Sid: Calibracoes
+                Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem]
+                Resource: !GetAtt TabelaCalibracoes.Arn
+              # Nome de exibição só para desenhar o PDF (D-025); restrito a este user pool.
+              - Sid: NomeDeExibicao
+                Effect: Allow
+                Action: cognito-idp:AdminGetUser
+                Resource: !GetAtt UserPool.Arn
+              - Sid: DestinoFalha
+                Effect: Allow
+                Action: sqs:SendMessage
+                Resource: !GetAtt FilaFalhas.Arn
+
+  # ---------------------------------------------------------------- Lambda
+  FnApi:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-fn-api
+      CodeUri: ../funcoes/target/funcoes-0.0.1-SNAPSHOT.jar
+      Handler: br.senai_pa3.api.FnApi::handleRequest
+      Role: !GetAtt PapelFnApi.Arn
+      LoggingConfig:
+        LogGroup: !Ref LogsFnApi
+      Environment:
+        Variables:
+          TABELA_CALIBRACOES: !Ref TabelaCalibracoes
+          BUCKET_ENTRADA: !Ref BucketEntrada
+          BUCKET_CERTIFICADOS: !Ref BucketCertificados
+      Events:
+        PostUploads:
+          Type: HttpApi
+          Properties: { ApiId: !Ref Api, Method: POST, Path: /uploads }
+        GetCalibracao:
+          Type: HttpApi
+          Properties: { ApiId: !Ref Api, Method: GET, Path: '/calibracoes/{id}' }
+        GetPdf:
+          Type: HttpApi
+          Properties: { ApiId: !Ref Api, Method: GET, Path: '/calibracoes/{id}/pdf' }
+        GetLista:
+          Type: HttpApi
+          Properties: { ApiId: !Ref Api, Method: GET, Path: /calibracoes }
+        GetVerificacao:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Method: GET
+            Path: '/verificacao/{token}'
+            Auth:
+              Authorizer: NONE
+
+  FnIngestao:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-fn-ingestao
+      CodeUri: ../funcoes/target/funcoes-0.0.1-SNAPSHOT.jar
+      Handler: br.senai_pa3.ingestao.FnIngestao::handleRequest
+      Role: !GetAtt PapelFnIngestao.Arn
+      LoggingConfig:
+        LogGroup: !Ref LogsFnIngestao
+      Environment:
+        Variables:
+          TABELA_CALIBRACOES: !Ref TabelaCalibracoes
+      Events:
+        Upload:
+          Type: S3
+          Properties:
+            Bucket: !Ref BucketEntrada
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - { Name: prefix, Value: uploads/ }
+                  - { Name: suffix, Value: .xlsx }
+      EventInvokeConfig:
+        MaximumRetryAttempts: 2
+        DestinationConfig:
+          OnSuccess:
+            Type: Lambda
+            Destination: !GetAtt FnCertificado.Arn
+          OnFailure:
+            Type: SQS
+            Destination: !GetAtt FilaFalhas.Arn
+
+  FnCertificado:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-fn-certificado
+      CodeUri: ../funcoes/target/funcoes-0.0.1-SNAPSHOT.jar
+      Handler: br.senai_pa3.certificado.FnCertificado::handleRequest
+      Role: !GetAtt PapelFnCertificado.Arn
+      LoggingConfig:
+        LogGroup: !Ref LogsFnCertificado
+      Environment:
+        Variables:
+          TABELA_CALIBRACOES: !Ref TabelaCalibracoes
+          BUCKET_CERTIFICADOS: !Ref BucketCertificados
+          USER_POOL_ID: !Ref UserPool
+          URL_VERIFICACAO_BASE: !Ref UrlVerificacaoBase
+      EventInvokeConfig:
+        MaximumRetryAttempts: 2
+        DestinationConfig:
+          OnFailure:
+            Type: SQS
+            Destination: !GetAtt FilaFalhas.Arn
+
+Outputs:
+  UrlApi:
+    Value: !Sub https://${Api}.execute-api.${AWS::Region}.${AWS::URLSuffix}
+  UserPoolId:
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Value: !Ref UserPoolClient
+  BucketWeb:
+    Value: !Ref BucketWeb
+  BucketEntrada:
+    Value: !Ref BucketEntrada
+  BucketCertificados:
+    Value: !Ref BucketCertificados
+  TabelaCalibracoes:
+    Value: !Ref TabelaCalibracoes
+  FilaFalhas:
+    Value: !GetAtt FilaFalhas.QueueName
