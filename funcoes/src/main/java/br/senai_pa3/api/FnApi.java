@@ -43,6 +43,7 @@ public class FnApi implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2
     static final String VARIAVEL_BUCKET_ENTRADA = "BUCKET_ENTRADA";
     static final String VARIAVEL_BUCKET_CERTIFICADOS = "BUCKET_CERTIFICADOS";
     static final long LIMITE_BYTES = 5L * 1024 * 1024;
+    static final int LIMITE_HISTORICO = 20;
 
     private static final Pattern ID = Pattern.compile("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
     private static final Pattern TOKEN = Pattern.compile("[A-Za-z0-9]{32}");
@@ -83,7 +84,7 @@ public class FnApi implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2
                 case "POST /uploads" -> iniciarEnvio(evento);
                 case "GET /calibracoes/{id}" -> comDono(evento, caminho.get("id"), this::estado);
                 case "GET /calibracoes/{id}/pdf" -> comDono(evento, caminho.get("id"), this::pdf);
-                case "GET /calibracoes" -> problema(501, "Não implementado", "A listagem ainda não está disponível.");
+                case "GET /calibracoes" -> listar(evento);
                 case "GET /verificacao/{token}" -> verificar(caminho.get("token"));
                 default -> problema(404, "Rota inexistente", "Rota não encontrada.");
             };
@@ -169,6 +170,33 @@ public class FnApi implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2
             corpo.put("sha256Pdf", r.sha256Pdf());
         }
         return json(200, corpo);
+    }
+
+    /**
+     * Histórico (T12): os últimos {@link #LIMITE_HISTORICO} envios do {@code sub}, só com o que a lista
+     * mostra; o detalhe é {@code GET /calibracoes/{id}}. O filtro por {@code sub} repete o da consulta
+     * como defesa: um item alheio nunca sai, mesmo com defeito no adaptador.
+     */
+    private APIGatewayV2HTTPResponse listar(APIGatewayV2HTTPEvent evento) {
+        String sub = sub(evento);
+        if (sub == null) {
+            return problema(401, "Não autenticado", "Token sem identificação de usuário.");
+        }
+        List<Map<String, Object>> itens = new ArrayList<>();
+        for (RegistroCalibracao r : repositorio.listarDoUsuario(sub, LIMITE_HISTORICO)) {
+            if (!r.sub().equals(sub)) {
+                continue;
+            }
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", r.id());
+            m.put("estado", r.estado());
+            m.put("atualizadoEm", r.atualizadoEm().toString());
+            if (r.resultado() != null) {
+                m.put("parecer", r.resultado().parecer());
+            }
+            itens.add(m);
+        }
+        return json(200, Map.of("itens", itens));
     }
 
     private static List<Map<String, Object>> pontos(ResultadoCalibracao resultado) {

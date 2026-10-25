@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { entrar } from './cognito.js';
+import Historico from './Historico.jsx';
 import Processamento from './Processamento.jsx';
 import { lerUsuario } from './token.js';
 
@@ -67,6 +68,9 @@ function Login({ aoEntrar }) {
 
 function Painel({ token, aoSair }) {
   const { nome, email } = lerUsuario(token);
+  // Duas telas com estado simples (sem roteador, D-019). Trocar de tela desmonta a anterior e
+  // cancela o que ela estava consultando.
+  const [tela, setTela] = useState('processar');
   return (
     <main>
       <header className="topo">
@@ -79,7 +83,19 @@ function Painel({ token, aoSair }) {
           <button type="button" className="secundaria" onClick={aoSair}>Sair</button>
         </div>
       </header>
-      <Processamento token={token} aoExpirar={aoSair} />
+      <nav className="abas" aria-label="Telas">
+        <button type="button" aria-current={tela === 'processar' ? 'page' : undefined}
+          onClick={() => setTela('processar')}>
+          Processar planilha
+        </button>
+        <button type="button" aria-current={tela === 'historico' ? 'page' : undefined}
+          onClick={() => setTela('historico')}>
+          Histórico
+        </button>
+      </nav>
+      {tela === 'processar'
+        ? <Processamento token={token} aoExpirar={aoSair} aoAbrirHistorico={() => setTela('historico')} />
+        : <Historico token={token} aoExpirar={aoSair} />}
     </main>
   );
 }

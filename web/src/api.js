@@ -80,6 +80,11 @@ export async function enviarArquivo(envio, arquivo, signal) {
   }
 }
 
+/** GET /calibracoes → { itens: [{ id, estado, atualizadoEm, parecer? }] }, os 20 mais recentes. */
+export function listar(token, signal) {
+  return chamar(token, '/calibracoes', { signal });
+}
+
 /** GET /calibracoes/{id} → estado, parecer, pontos, erros… */
 export function consultar(token, id, signal) {
   return chamar(token, `/calibracoes/${encodeURIComponent(id)}`, { signal });

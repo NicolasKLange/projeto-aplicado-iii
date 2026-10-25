@@ -237,11 +237,64 @@ class FnApiTest {
         }
     }
 
+    // GET /calibracoes (histórico, T12)
+
+    @Test
+    void historico_soDoUsuario_maisRecentePrimeiro_semHashSubNemToken() {
+        emitida(ID, SUB); // última transição em AGORA + 5 s
+        repositorio.iniciar("22222222-2222-4222-8222-222222222222", SUB, AGORA.plusSeconds(10));
+        repositorio.iniciar("33333333-3333-4333-8333-333333333333", SUB, AGORA);
+        repositorio.registrarRejeitada("33333333-3333-4333-8333-333333333333", "c".repeat(64), 10L,
+                List.of(new ErroValidacao(2, "Leitura1", "R11", "Valor inválido.")), AGORA.plusSeconds(1));
+        repositorio.iniciar("44444444-4444-4444-8444-444444444444", OUTRO_SUB, AGORA.plusSeconds(20));
+
+        var r = chamar("GET /calibracoes", SUB, Map.of(), null);
+
+        assertThat(r.getStatusCode()).isEqualTo(200);
+        assertThat(r.getHeaders()).containsEntry("Content-Type", "application/json");
+        assertThat(r.getBody()).isEqualTo("{\"itens\":["
+                + "{\"id\":\"22222222-2222-4222-8222-222222222222\",\"estado\":\"PROCESSANDO\","
+                + "\"atualizadoEm\":\"2026-10-25T12:00:10Z\"},"
+                + "{\"id\":\"" + ID + "\",\"estado\":\"EMITIDA\",\"atualizadoEm\":\"2026-10-25T12:00:05Z\","
+                + "\"parecer\":\"APROVADO\"},"
+                + "{\"id\":\"33333333-3333-4333-8333-333333333333\",\"estado\":\"REJEITADA\","
+                + "\"atualizadoEm\":\"2026-10-25T12:00:01Z\"}]}");
+        assertThat(r.getBody()).doesNotContain(SUB, OUTRO_SUB, SHA, TOKEN, "44444444");
+    }
+
+    @Test
+    void historico_limitadoA20_vazioParaQuemNaoEnviou_401SemSub() {
+        for (int i = 0; i < 25; i++) {
+            repositorio.iniciar(String.format("00000000-0000-4000-8000-%012d", i), SUB, AGORA.plusSeconds(i));
+        }
+
+        var r = chamar("GET /calibracoes", SUB, Map.of(), null);
+        assertThat(r.getBody().split("\"id\"", -1)).hasSize(FnApi.LIMITE_HISTORICO + 1);
+        assertThat(r.getBody()).contains("000000000024").doesNotContain("000000000004\"");
+
+        assertThat(chamar("GET /calibracoes", OUTRO_SUB, Map.of(), null).getBody()).isEqualTo("{\"itens\":[]}");
+        assertThat(chamar("GET /calibracoes", null, Map.of(), null).getStatusCode()).isEqualTo(401);
+    }
+
+    @Test
+    void historico_itemDeOutroSubDevolvidoPorEngano_naoSai() {
+        RepositorioCalibracoes defeituoso = new RepositorioEmMemoria() {
+            @Override
+            public synchronized List<br.senai_pa3.persistencia.RegistroCalibracao> listarDoUsuario(String sub,
+                    int limite) {
+                return super.listarDoUsuario(OUTRO_SUB, limite);
+            }
+        };
+        defeituoso.iniciar(ID, OUTRO_SUB, AGORA);
+
+        var r = criar(defeituoso).handleRequest(evento("GET /calibracoes", SUB, Map.of(), null), null);
+        assertThat(r.getBody()).isEqualTo("{\"itens\":[]}");
+    }
+
     // Outras rotas e erros
 
     @Test
-    void listagemEhStubDaT12_eRotaDesconhecida404() {
-        assertThat(chamar("GET /calibracoes", SUB, Map.of(), null).getStatusCode()).isEqualTo(501);
+    void rotaDesconhecida404() {
         assertThat(chamar("DELETE /calibracoes/{id}", SUB, Map.of("id", ID), null).getStatusCode()).isEqualTo(404);
     }
 

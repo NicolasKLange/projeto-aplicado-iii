@@ -343,6 +343,72 @@ button.secundaria:hover:not(:disabled) {
   font-weight: 600;
 }
 
+/* Navegação e histórico (T12). A aba atual é marcada por aria-current e pela borda inferior,
+ * não só pela cor. #1f2937 sobre #f8fafc = 14,0:1; aba atual #1e3a8a sobre #f8fafc = 9,9:1.
+ */
+.abas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--borda);
+}
+
+.abas button {
+  color: var(--texto);
+  background: transparent;
+  border-bottom: 3px solid transparent;
+  border-radius: 0.375rem 0.375rem 0 0;
+}
+
+.abas button:hover:not(:disabled) {
+  color: var(--texto);
+  background: var(--cabecalho);
+}
+
+.abas button[aria-current="page"] {
+  color: var(--primaria-escura);
+  border-bottom-color: var(--primaria);
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.num-esquerda {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.identificacao {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+  margin: 0;
+}
+
+.identificacao code {
+  user-select: all;
+  overflow-wrap: anywhere;
+}
+
+/* Só para leitor de tela: o cabeçalho da coluna de botões não precisa aparecer. */
+.visualmente-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Tablet (768 px): a tabela de pontos cabe sem rolar; o selo de status quebra após "_". */
 @media (max-width: 52rem) {
   .cartao {

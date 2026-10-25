@@ -79,4 +79,13 @@ public interface RepositorioCalibracoes {
      * do token, ou vazio se o token não existe.
      */
     Optional<RegistroCalibracao> buscarPorToken(String token);
+
+    /**
+     * {@code fn-api}, histórico (T12): os envios do {@code sub}, do mais recente para o mais antigo
+     * pela última transição ({@code atualizadoEm}), no máximo {@code limite}. No DynamoDB vem do
+     * GSI2, que é eventualmente consistente: um envio de segundos atrás pode ainda não aparecer.
+     *
+     * @throws IllegalArgumentException se {@code limite} não for positivo
+     */
+    List<RegistroCalibracao> listarDoUsuario(String sub, int limite);
 }

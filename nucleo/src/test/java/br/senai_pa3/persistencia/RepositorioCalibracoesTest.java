@@ -181,6 +181,22 @@ class RepositorioCalibracoesTest {
     }
 
     @Test
+    void listarDoUsuario_soDoSub_maisRecentePrimeiro_ateOLimite() {
+        repo.iniciar("e1", SUB, T0);
+        repo.iniciar("e2", SUB, T0.plusSeconds(10));
+        repo.iniciar("e3", SUB, T0.plusSeconds(20));
+        repo.iniciar("alheio", "sub-opaco-2", T0.plusSeconds(30));
+        // A transição move o envio para o topo: a ordem é pela última atualização, não pela criação.
+        repo.registrarProcessada("e1", HASH_A, 1, resultado(), T0.plusSeconds(40));
+
+        assertThat(repo.listarDoUsuario(SUB, 20)).extracting(RegistroCalibracao::id)
+                .containsExactly("e1", "e3", "e2");
+        assertThat(repo.listarDoUsuario(SUB, 2)).extracting(RegistroCalibracao::id).containsExactly("e1", "e3");
+        assertThat(repo.listarDoUsuario("sem-envios", 20)).isEmpty();
+        assertThatIllegalArgumentException().isThrownBy(() -> repo.listarDoUsuario(SUB, 0));
+    }
+
+    @Test
     void registroIncoerenteEhRecusado() {
         assertThatIllegalArgumentException().isThrownBy(() -> new RegistroCalibracao("e1", SUB,
                 EstadoCalibracao.REJEITADA, HASH_A, 1L, resultado(), erros(), null, null, null, T0));

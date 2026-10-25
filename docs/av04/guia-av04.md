@@ -463,7 +463,7 @@ sem detalhe técnico.
 
 ---
 
-### [ ] T12 · Histórico de calibrações ◇ 🛠
+### [x] T12 · Histórico de calibrações ◇ 🛠
 
 **Contexto.** GSI da T04/T08, rota `GET /calibracoes` (T07).
 
@@ -471,6 +471,8 @@ sem detalhe técnico.
 que faz a plataforma ser "de gestão", e não só a tela da AV03.
 
 **Aceite.** Lista mostra os envios da T09 e T11.
+
+> **Concluída em 25/10.** Porta `listarDoUsuario(sub, limite)`; adaptador DynamoDB com `Query` no GSI2 (`GSI2PK = USER#<sub>`, decrescente, `Limit` 20), em memória com a mesma ordem. `GET /calibracoes` devolve `{itens: [{id, estado, atualizadoEm, parecer?}]}`, sem `sub`, `sha256` nem token, e refiltra por `sub` como defesa. Tela: abas "Processar planilha" / "Histórico" (estado simples, sem roteador); lista com data em America/Sao_Paulo, estado e parecer com enum literal + rótulo e botão **Abrir**, que reaproveita a tabela da T11 (`Resultado.jsx`); "Abrir histórico" nas mensagens de duplicada e de demora. Back-end reimplantado (`infra/deploy.sh`; só código). **Aceite adaptado:** os usuários da T09 e da T11 tinham sido apagados, e cada usuário recriado ganha `sub` novo; por desenho (dono = `sub`), aqueles envios não aparecem para ninguém. Reproduzidos com um só usuário: `MANTER_USUARIO=sim infra/smoke.sh` (todos os cenários passam, o que também prova que a `fn-api` nova não regrediu; evidências da T09 restauradas com `git restore`) e, na tela, as três planilhas da T11 mais um reenvio. A lista mostrou os 9 envios (5 da T09 + 4 da T11), do mais recente para o mais antigo. O detalhe de `EMITIDA` baixa o PDF com SHA-256 igual ao `sha256Pdf`; o de `REJEITADA` mostra R10, R11 e R14. A janela do Chrome não aceitou redimensionar desta vez, então a largura de tablet foi emulada (`main` com 736 px = 768 − 2 × 16): a tabela cabe sem rolar. Evidências: `docs/av04/evidencias/respostas/t12-historico.txt` e `docs/av04/evidencias/tela/t12-*.jpg`. `./mvnw test`: 154 testes, 0 falhas; `npm run build` verde. **Limitações:** só os 20 mais recentes, sem paginação; ordem pela última transição (`atualizadoEm`), não pela data de envio; GSI eventualmente consistente (um envio de segundos atrás pode faltar até "Atualizar").
 
 ---
 
@@ -597,7 +599,7 @@ sem `UpdateItem`/`DeleteItem` nela.
 | T09    | 🛠   | Concluída | `infra/smoke.sh`: 6 cenários na nuvem passam; DynamoDB real provado; ID token no autorizador |
 | T10    | 🛠/🧑‍🏫 | Concluída | `web/` com login no Cognito real (ID token em memória); `cognito.js` do Rodrigo; testado no Chrome |
 | T11    | 🛠   | Concluída | Upload → S3 → polling; 4 estados provados na nuvem; HALF_EVEN igual ao PDF; 768 px sem rolagem |
-| T12    | 🛠   | Pendente |            |
+| T12    | 🛠   | Concluída | GSI2 + `GET /calibracoes` + aba Histórico; 154 testes; 9 envios (T09 + T11) com o mesmo usuário |
 | T13    | 🛠   | Pendente |            |
 | T14    | 🛠   | Pendente |            |
 | T15    | 🛠   | Pendente |            |

@@ -18,6 +18,8 @@ import br.senai_pa3.dominio.PontoEnsaio;
 import br.senai_pa3.dominio.ResultadoCalibracao;
 import br.senai_pa3.dominio.ResultadoPonto;
 import br.senai_pa3.ingestao.ErroValidacao;
+import br.senai_pa3.persistencia.EstadoCalibracao;
+import br.senai_pa3.persistencia.RegistroCalibracao;
 import br.senai_pa3.persistencia.ResultadoRegistro;
 
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -26,6 +28,8 @@ import software.amazon.awssdk.services.dynamodb.model.CancellationReason;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
+import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsRequest;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsResponse;
 import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
@@ -42,6 +46,7 @@ class RepositorioCalibracoesDynamoDbTest {
     private Function<TransactWriteItemsRequest, TransactWriteItemsResponse> transacao;
     private Function<UpdateItemRequest, UpdateItemResponse> atualizacao;
     private Function<GetItemRequest, GetItemResponse> leitura;
+    private Function<QueryRequest, QueryResponse> consulta;
     private RepositorioCalibracoesDynamoDb repo;
 
     @BeforeEach
@@ -49,6 +54,7 @@ class RepositorioCalibracoesDynamoDbTest {
         transacao = r -> TransactWriteItemsResponse.builder().build();
         atualizacao = r -> UpdateItemResponse.builder().build();
         leitura = r -> GetItemResponse.builder().build();
+        consulta = r -> QueryResponse.builder().items(List.of()).build();
         DynamoDbClient cliente = (DynamoDbClient) Proxy.newProxyInstance(getClass().getClassLoader(),
                 new Class<?>[] { DynamoDbClient.class }, (proxy, metodo, args) -> {
                     requisicoes.add(args[0]);
@@ -56,6 +62,7 @@ class RepositorioCalibracoesDynamoDbTest {
                         case "transactWriteItems" -> transacao.apply((TransactWriteItemsRequest) args[0]);
                         case "updateItem" -> atualizacao.apply((UpdateItemRequest) args[0]);
                         case "getItem" -> leitura.apply((GetItemRequest) args[0]);
+                        case "query" -> consulta.apply((QueryRequest) args[0]);
                         default -> throw new UnsupportedOperationException(metodo.getName());
                     };
                 });
@@ -146,9 +153,9 @@ class RepositorioCalibracoesDynamoDbTest {
                 .isInstanceOf(IllegalStateException.class);
     }
 
-    private void leituras(br.senai_pa3.persistencia.EstadoCalibracao estadoAtual, String idOriginal) {
-        var registro = new br.senai_pa3.persistencia.RegistroCalibracao("u-1", "s", estadoAtual, SHA, 2048L,
-                estadoAtual == br.senai_pa3.persistencia.EstadoCalibracao.PROCESSADA ? resultado() : null, null,
+    private void leituras(EstadoCalibracao estadoAtual, String idOriginal) {
+        var registro = new RegistroCalibracao("u-1", "s", estadoAtual, SHA, 2048L,
+                estadoAtual == EstadoCalibracao.PROCESSADA ? resultado() : null, null,
                 idOriginal, null, null, AGORA);
         leitura = r -> r.key().get("PK").s().startsWith("HASH#")
                 ? GetItemResponse.builder().item(Map.of("calId", AttributeValue.fromS("u-0"))).build()
@@ -161,10 +168,10 @@ class RepositorioCalibracoesDynamoDbTest {
             throw ConditionalCheckFailedException.builder().message("x").build();
         };
 
-        leituras(br.senai_pa3.persistencia.EstadoCalibracao.DUPLICADA, "u-0");
+        leituras(EstadoCalibracao.DUPLICADA, "u-0");
         repo.registrarDuplicada("u-1", "u-0", SHA, 2048L, AGORA);
 
-        leituras(br.senai_pa3.persistencia.EstadoCalibracao.PROCESSADA, null);
+        leituras(EstadoCalibracao.PROCESSADA, null);
         assertThatThrownBy(() -> repo.registrarDuplicada("u-1", "u-0", SHA, 2048L, AGORA))
                 .isInstanceOf(IllegalStateException.class);
     }
@@ -211,5 +218,29 @@ class RepositorioCalibracoesDynamoDbTest {
         assertThat(requisicoes).extracting(r -> ((GetItemRequest) r).key().get("PK").s())
                 .containsExactly("TOKEN#tok", "CAL#u-1");
         assertThat(repo.buscarPorToken("nenhum")).isEmpty();
+    }
+
+    @Test
+    void listarDoUsuario_consultaOGsi2DecrescenteComLimiteEMapeiaOsItens() {
+        var emitida = new RegistroCalibracao("u-2", "sub-1", EstadoCalibracao.EMITIDA, SHA, 10L, resultado(),
+                null, null, "tok", "b".repeat(64), AGORA.plusSeconds(5));
+        var processando = new RegistroCalibracao("u-1", "sub-1", EstadoCalibracao.PROCESSANDO, null, null, null,
+                null, null, null, null, AGORA);
+        consulta = r -> QueryResponse.builder()
+                .items(MapeadorItemCalibracao.paraItem(emitida), MapeadorItemCalibracao.paraItem(processando))
+                .build();
+
+        var lista = repo.listarDoUsuario("sub-1", 20);
+
+        assertThat(lista).extracting(r -> r.id()).containsExactly("u-2", "u-1");
+        assertThat(lista.get(0).resultado().parecer()).isEqualTo(emitida.resultado().parecer());
+        var req = (QueryRequest) requisicoes.get(0);
+        assertThat(req.tableName()).isEqualTo("calibracoes");
+        assertThat(req.indexName()).isEqualTo("GSI2");
+        assertThat(req.keyConditionExpression()).isEqualTo("GSI2PK = :pk");
+        assertThat(req.expressionAttributeValues().get(":pk").s()).isEqualTo("USER#sub-1");
+        assertThat(req.scanIndexForward()).isFalse();
+        assertThat(req.limit()).isEqualTo(20);
+        assertThatThrownBy(() -> repo.listarDoUsuario("sub-1", 0)).isInstanceOf(IllegalArgumentException.class);
     }
 }

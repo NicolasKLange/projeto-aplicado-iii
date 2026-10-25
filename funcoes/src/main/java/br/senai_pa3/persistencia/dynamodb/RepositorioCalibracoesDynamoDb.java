@@ -20,6 +20,7 @@ import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedExce
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.Put;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsRequest;
@@ -43,6 +44,8 @@ public class RepositorioCalibracoesDynamoDb implements RepositorioCalibracoes {
     private static final String PREFIXO_HASH = "HASH#";
     private static final String PREFIXO_TOKEN = "TOKEN#";
     private static final String SK_UNICO = "UNICO";
+    /** GSI2PK = {@code USER#<sub>}, GSI2SK = {@code atualizadoEm} (template.yaml). */
+    static final String INDICE_USUARIO = "GSI2";
 
     private final DynamoDbClient dynamo;
     private final String tabela;
@@ -134,6 +137,25 @@ public class RepositorioCalibracoesDynamoDb implements RepositorioCalibracoes {
     @Override
     public Optional<RegistroCalibracao> buscarPorToken(String token) {
         return donoDa(PREFIXO_TOKEN + token).flatMap(this::buscar);
+    }
+
+    /**
+     * Uma {@code Query} no GSI2, decrescente por {@code GSI2SK}. Sem filtro, o {@code Limit} é o
+     * número de itens devolvidos; 20 itens ficam muito abaixo da página de 1 MB, então não há paginação.
+     */
+    @Override
+    public List<RegistroCalibracao> listarDoUsuario(String sub, int limite) {
+        if (limite <= 0) {
+            throw new IllegalArgumentException("limite deve ser positivo.");
+        }
+        return dynamo.query(QueryRequest.builder()
+                .tableName(tabela)
+                .indexName(INDICE_USUARIO)
+                .keyConditionExpression("GSI2PK = :pk")
+                .expressionAttributeValues(Map.of(":pk", s(MapeadorItemCalibracao.PREFIXO_USER + sub)))
+                .scanIndexForward(false)
+                .limit(limite)
+                .build()).items().stream().map(MapeadorItemCalibracao::deItem).toList();
     }
 
     private ResultadoRegistro registrar(String id, String sha256, long tamanhoBytes, EstadoCalibracao novo,

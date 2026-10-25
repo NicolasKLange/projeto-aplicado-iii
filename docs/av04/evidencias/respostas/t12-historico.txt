@@ -1,0 +1,32 @@
+HTTP 200
+{
+  "itens": [
+    {
+      "atualizadoEm": "2026-10-25T23:42:58.096630973Z",
+      "estado": "DUPLICADA",
+      "id": "2e08a7d0-a8a3-4658-bdcc-f2b13bcda3d0"
+    },
+    {
+      "atualizadoEm": "2026-10-25T23:42:54.847803526Z",
+      "estado": "EMITIDA",
+      "id": "1e11057c-d3d6-4f0e-b15e-dd687c992bb0",
+      "parecer": "APROVADO"
+    },
+    {
+      "atualizadoEm": "2026-10-25T23:42:47.054211792Z",
+      "estado": "REJEITADA",
+      "id": "4f4d0a31-a6d0-406e-9545-6c92a74b08f3"
+    },
+    {
+      "atualizadoEm": "2026-10-25T23:42:42.894195518Z",
+      "estado": "DUPLICADA",
+      "id": "30343e31-1e72-4d27-86a9-ca047ccb804c"
+    },
+    {
+      "atualizadoEm": "2026-10-25T23:42:34.190233230Z",
+      "estado": "EMITIDA",
+      "id": "1dd49d97-a6f0-4dd3-8ad3-624bac963921",
+      "parecer": "REPROVADO"
+    }
+  ]
+}

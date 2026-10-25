@@ -1,6 +1,7 @@
 package br.senai_pa3.persistencia;
 
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +84,20 @@ public class RepositorioEmMemoria implements RepositorioCalibracoes {
     @Override
     public synchronized Optional<RegistroCalibracao> buscarPorToken(String token) {
         return Optional.ofNullable(sentinelasToken.get(token)).map(calibracoes::get);
+    }
+
+    @Override
+    public synchronized List<RegistroCalibracao> listarDoUsuario(String sub, int limite) {
+        if (limite <= 0) {
+            throw new IllegalArgumentException("limite deve ser positivo.");
+        }
+        // Mesma ordem do GSI2 (GSI2SK = atualizadoEm, decrescente); o id só desempata.
+        return calibracoes.values().stream()
+                .filter(r -> r.sub().equals(sub))
+                .sorted(Comparator.comparing(RegistroCalibracao::atualizadoEm)
+                        .thenComparing(RegistroCalibracao::id).reversed())
+                .limit(limite)
+                .toList();
     }
 
     private ResultadoRegistro registrar(String id, String sha256, java.util.function.Function<RegistroCalibracao,
