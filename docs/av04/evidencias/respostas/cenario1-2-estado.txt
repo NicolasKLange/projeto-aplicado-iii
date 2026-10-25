@@ -1,0 +1,67 @@
+HTTP 200
+{
+  "atualizadoEm": "2026-10-25T21:50:27.159167096Z",
+  "estado": "EMITIDA",
+  "id": "6e3a51ee-fbe6-4c00-bfb3-1450a212f0a3",
+  "parecer": "REPROVADO",
+  "pontos": [
+    {
+      "caracteristica": "Diâmetro furo A",
+      "erroSistematico": "0.0150000000",
+      "lea": "0.03",
+      "leituras": [
+        "6.01",
+        "6.02"
+      ],
+      "media": "6.0150000000",
+      "status": "DENTRO_DA_TOLERANCIA",
+      "tolInferior": "-0.03",
+      "tolSuperior": "0.03",
+      "valorReferencia": "6.0"
+    },
+    {
+      "caracteristica": "Diâmetro furo B",
+      "erroSistematico": "0.0600000000",
+      "lea": "0.03",
+      "leituras": [
+        "6.05",
+        "6.07"
+      ],
+      "media": "6.0600000000",
+      "status": "FORA_DA_TOLERANCIA",
+      "tolInferior": "-0.03",
+      "tolSuperior": "0.03",
+      "valorReferencia": "6.0"
+    },
+    {
+      "caracteristica": "Altura flange",
+      "erroSistematico": "0.0000000000",
+      "lea": "0.05",
+      "leituras": [
+        "25.39",
+        "25.41"
+      ],
+      "media": "25.4000000000",
+      "status": "DENTRO_DA_TOLERANCIA",
+      "tolInferior": "-0.05",
+      "tolSuperior": "0.05",
+      "valorReferencia": "25.4"
+    },
+    {
+      "caracteristica": "Planicidade face",
+      "erroSistematico": "0.0130000000",
+      "lea": "0.05",
+      "leituras": [
+        "0.012",
+        "0.014"
+      ],
+      "media": "0.0130000000",
+      "status": "DENTRO_DA_TOLERANCIA",
+      "tolInferior": "0.0",
+      "tolSuperior": "0.05",
+      "valorReferencia": "0.0"
+    }
+  ],
+  "sha256": "ac42c2df144fb14e05262e7b8d54460157dc45fb21117f0ae273766eeb6fc7e8",
+  "sha256Pdf": "8716dfb3a4d3268bde5caf6bae92bf8dfaa70cf34e915519c3b62351966e6fa5"
+}

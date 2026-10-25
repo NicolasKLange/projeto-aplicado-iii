@@ -1,0 +1,27 @@
+HTTP 200
+{
+  "atualizadoEm": "2026-10-25T21:50:40.430143909Z",
+  "erros": [
+    {
+      "coluna": "Leitura2",
+      "linha": 2,
+      "mensagem": "Linha 2, coluna Leitura2: valor obrigatório ausente.",
+      "regra": "R10"
+    },
+    {
+      "coluna": "Leitura1",
+      "linha": 3,
+      "mensagem": "Linha 3, coluna Leitura1: 'n/a' não é um número válido.",
+      "regra": "R11"
+    },
+    {
+      "coluna": "ToleranciaInferior",
+      "linha": 4,
+      "mensagem": "Linha 4 ('Largura base'): tolerância +0.007/-0.002 fora do escopo do MVP — aceitas: bilateral simétrica ou unilateral.",
+      "regra": "R14"
+    }
+  ],
+  "estado": "REJEITADA",
+  "id": "248677fa-71a8-41e3-9314-298f789b4117",
+  "sha256": "d8d3882b98a29406cf9ab3de91ff9e64d7852bdb100b33b793b8f8c8f453837e"
+}

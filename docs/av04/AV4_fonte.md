@@ -63,6 +63,21 @@ Divergência de PV-14: o layout é simplificado, não reproduz o certificado da 
 
 ## 9. Evidências
 
+**Teste de ponta a ponta na nuvem (T09).** O script `infra/smoke.sh` percorre o back-end implantado (`pa3-av04`, `us-east-2`) só com `curl` e AWS CLI, lendo URL da API, user pool, cliente e tabela das saídas do stack. Cria um usuário de teste com atributo `name` e senha aleatória por execução, obtém o token por `USER_PASSWORD_AUTH` (o autorizador JWT confere `aud`, então vale o *ID token*) e apaga o usuário ao final. Os arquivos de entrada são as planilhas sintéticas do repositório. As respostas gravadas em `docs/av04/evidencias/respostas/` passam por `jq` e por uma varredura final que recusa JWT, parâmetro de URL pré-assinada e número de conta.
+
+| ID | Cenário | Esperado | Obtido |
+| --- | --- | --- | --- |
+| CT-401 | Envio normal de `ok-reprovado.xlsx`: `POST /uploads`, `PUT`, *polling* | `EMITIDA`, `REPROVADO`, só um ponto `FORA_DA_TOLERANCIA` | igual |
+| CT-402 | `GET /calibracoes/{id}/pdf` e download | 200, arquivo `%PDF-` com o nome do Cognito no "Gerado por" (`AdminGetUser` pelo `sub`) | igual |
+| CT-403 | `GET /verificacao/{token}` sem token de acesso | 200; `sha256Pdf` igual ao SHA-256 do PDF baixado; sem `sub`; token inexistente → 404 | igual |
+| CT-404 | Mesmo arquivo em novo envio (idempotência) | `DUPLICADA`; `/pdf` → 409 | igual |
+| CT-405 | `inv-multiplos-erros.xlsx` | `REJEITADA` com R10, R11 e R14 | igual |
+| CT-406 | Sem `Authorization` e com token inválido | 401 na borda | igual |
+| CT-407 | Id sem item; `tamanho` de 5 MB + 1 byte | 404; 413 | igual |
+| CT-408 | Dois envios simultâneos do mesmo hash (`ok-aprovado.xlsx`) | exatamente um `EMITIDA` e um `DUPLICADA` (sentinela `HASH#` com condição no DynamoDB real) | igual |
+
+Log da `fn-ingestao` no CloudWatch (`log-fn-ingestao.txt`): cada execução registra apenas `uploadId`, SHA-256, tamanho em bytes e resultado; a busca por `.xlsx`, nome dos arquivos, `sub` e `eyJ` (início de JWT) não encontra nada. Não coberto na nuvem: reentrega do mesmo evento do S3, provada só nos testes unitários da `fn-ingestao`.
+
 ## 10. Matriz de Rastreabilidade de Requisitos
 
 ## 11. Limitações e roadmap

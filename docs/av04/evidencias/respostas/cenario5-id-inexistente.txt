@@ -1,0 +1,7 @@
+HTTP 404
+{
+  "detail": "Calibração não encontrada.",
+  "status": 404,
+  "title": "Não encontrada",
+  "type": "about:blank"
+}

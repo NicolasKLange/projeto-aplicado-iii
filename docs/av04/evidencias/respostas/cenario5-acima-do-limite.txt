@@ -1,0 +1,7 @@
+HTTP 413
+{
+  "detail": "O arquivo excede o limite de 5 MB.",
+  "status": 413,
+  "title": "Arquivo grande demais",
+  "type": "about:blank"
+}

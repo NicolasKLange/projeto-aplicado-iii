@@ -385,7 +385,7 @@ sem DynamoDB sob demanda); `aws s3api get-bucket-lifecycle-configuration` mostra
 
 ---
 
-### [ ] T09 · Teste de ponta a ponta na nuvem, sem tela ★ 🛠 🔒
+### [x] T09 · Teste de ponta a ponta na nuvem, sem tela ★ 🛠 🔒
 
 **Contexto.** Saídas do stack (T08), `docs/av03/evidencias.md` (modelo de CT e laço `curl`).
 
@@ -406,6 +406,8 @@ sem DynamoDB sob demanda); `aws s3api get-bucket-lifecycle-configuration` mostra
 hash e tamanho. **Marco de domingo: se isso passa, a AV04 está garantida.**
 
 **Relatório.** §9 (Evidências).
+
+> **Concluída em 25/10.** `infra/smoke.sh` (variáveis das saídas do stack, usuário `smoke-pa3@example.com` com `name`, senha aleatória por execução, usuário apagado ao final) passou em todas as verificações no stack `pa3-av04`: envio normal até `EMITIDA` (`REPROVADO`, só o ponto de furo B `FORA_DA_TOLERANCIA`), PDF baixado com o nome do Cognito (prova `AdminGetUser` com o `sub`), `GET /verificacao/{token}` sem token com `sha256Pdf` igual ao do arquivo baixado, mesmo arquivo → `DUPLICADA`, `inv-multiplos-erros.xlsx` → `REJEITADA` (R10, R11, R14), sem token e token inválido → 401, id sem item → 404, tamanho > 5 MB → 413, e dois envios simultâneos do mesmo hash → um `EMITIDA` e um `DUPLICADA` (condições do `TransactWriteItems` provadas no DynamoDB real). Log da `fn-ingestao`: só `uploadId`, SHA-256, bytes e resultado (verificado sem `.xlsx`, `sub` nem JWT). Respostas filtradas com `jq` em `docs/av04/evidencias/respostas/`. **Notas:** o autorizador JWT confere `aud`, então o token usado é o **ID token** (o da T10 também); o script apaga a sentinela `HASH#` dos três arquivos de teste antes de rodar, para poder repetir; a reentrega do mesmo evento S3 continua provada só nos testes unitários. `./mvnw test`: 149 testes, 0 falhas.
 
 ---
 
@@ -588,7 +590,7 @@ sem `UpdateItem`/`DeleteItem` nela.
 | T06    | 🧑‍🏫   | Concluída | Handler + adaptador DynamoDB; 102 testes verdes; D-023; falta provar o DynamoDB real (T09) |
 | T07    | 🛠   | Concluída | fn-certificado + fn-api; 143 testes verdes; D-024; JAR sombreado 48 MB; nome via Cognito (D-025) |
 | T08    | 🛠   | Concluída | Stack `pa3-av04` `CREATE_COMPLETE`; sem CloudFront (D-026); IAM delegado |
-| T09    | 🛠   | Pendente |            |
+| T09    | 🛠   | Concluída | `infra/smoke.sh`: 6 cenários na nuvem passam; DynamoDB real provado; ID token no autorizador |
 | T10    | 🛠   | Pendente |            |
 | T11    | 🛠   | Pendente |            |
 | T12    | 🛠   | Pendente |            |

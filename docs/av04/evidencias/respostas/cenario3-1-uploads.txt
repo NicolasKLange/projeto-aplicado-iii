@@ -1,0 +1,7 @@
+HTTP 201
+{
+  "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "expiraEmSegundos": 300,
+  "metodo": "PUT",
+  "uploadId": "248677fa-71a8-41e3-9314-298f789b4117"
+}

@@ -1,0 +1,7 @@
+HTTP 200
+{
+  "atualizadoEm": "2026-10-25T21:50:35.325863671Z",
+  "estado": "DUPLICADA",
+  "id": "1ca9efc6-da17-44bd-8144-82123d0536b3",
+  "sha256": "ac42c2df144fb14e05262e7b8d54460157dc45fb21117f0ae273766eeb6fc7e8"
+}
