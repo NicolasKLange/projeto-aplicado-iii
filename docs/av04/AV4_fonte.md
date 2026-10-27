@@ -1,8 +1,43 @@
-# AV04 — Plataforma Web e deploy em nuvem (fonte do relatório)
+# AV04 — Plataforma Web de Gestão e deploy em nuvem
 
-<!-- Cada tarefa acrescenta o seu trecho na seção indicada em "Relatório" no guia. -->
+<!-- Cada tarefa acrescenta o seu trecho na seção indicada em "Relatório" no guia.
+     PDF: cd ferramentas/relatorio && npm ci && node gerar-relatorio.mjs. -->
+
+**Relatório Técnico Integrado** · Automação da emissão de certificados de calibração (Schulz S.A.)
+
+| | |
+| --- | --- |
+| **Unidade Curricular** | Projeto Aplicado III — UniSENAI/SC |
+| **Docente** | Prof. MSc. Hugo Menezes Barra |
+| **Empresa parceira** | Schulz S.A. — Schulz Metrologia (Setor Dimensional), Joinville/SC |
+| **Grupo 39** | Adrian David Castillo Marcano — RA `<preencher>`; Nícolas Kretzschmar Lange — RA `<preencher>`; Rodrigo Mainardes Ribeiro — RA `<preencher>` |
+| **Entrega** | AV04 — Plataforma Web de Gestão e deploy na AWS (Camada Gratuita) |
+| **Repositório GitHub** | <https://github.com/NicolasKLange/projeto-aplicado-iii> |
+| **Plataforma em nuvem** | `<preencher: saída UrlPlataforma do stack>` |
+| **Vídeo (YouTube)** | `<preencher: link do vídeo não listado>` |
 
 ## 1. Introdução e vínculo com AV01–AV03
+
+A Schulz Metrologia leva cerca de 13 dias entre medir um dispositivo na máquina de medição por
+coordenadas (MMC) e emitir o certificado de calibração. O caminho é uma cadeia de planilhas Excel
+acopladas por cópia manual, com 28 valores transportados à mão por certificado, cálculo não validado e
+nenhuma trilha de auditoria. Esse foi o diagnóstico da **AV01**, que levantou os requisitos (RF, RNF),
+as regras de negócio (RN) e as anomalias (AN) usados como referência em todo este relatório.
+
+A **AV02** projetou uma arquitetura *serverless* de custo zero na AWS: o upload da planilha no storage
+dispara a função que lê o arquivo, grava no banco e gera o PDF; a autoria vem da autenticação do usuário,
+sem ICP-Brasil; os registros têm retenção de 5 anos por regras de ciclo de vida. A **AV03** construiu o
+motor transacional: leitura e validação da planilha contra um contrato de 15 regras (R01–R15) e o cálculo
+de média, erro sistemático, status por ponto e parecer, em `BigDecimal`, num núcleo Java independente de
+framework.
+
+A **AV04** integra as três etapas numa **Plataforma Web de Gestão** publicada na AWS, dentro da Camada
+Gratuita. O mesmo núcleo da AV03 roda dentro de uma função Lambda; o pipeline da AV02 está implantado
+de ponta a ponta (upload → evento → cálculo → DynamoDB → PDF → verificação pública por QR Code); e a
+interface web permite ao engenheiro entrar com o seu usuário, processar planilhas, acompanhar o resultado,
+baixar o certificado e consultar o histórico com indicadores. Qualquer pessoa que receba o certificado
+confere a autenticidade pelo celular, lendo o QR Code impresso, sem login. O recorte da entrega e as
+divergências em relação à AV02 estão declarados na D-018 (§2) e na §11.
 
 ## 2. Decisões da entrega
 
@@ -15,7 +50,53 @@ As decisões D-015 a D-020 (`docs/decisoes.md`, 24/10/2026) fecham o escopo da A
 - **D-019, bibliotecas:** SDK da AWS v2, eventos do Lambda, PDFBox 3, ZXing `core`, React + Vite e SAM CLI.
 - **D-020, runtime `java21` com bytecode 17:** o `java17` (AL2) vai até 30/06/2027; `java21` (AL2023) até 30/06/2029 (https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html, 24/10/2026).
 
+As decisões seguintes nasceram durante a implementação:
+
+- **D-021, persistência e idempotência:** tabela única com sentinelas `HASH#` e `TOKEN#` gravadas na mesma transação do estado (§4).
+- **D-022, região `us-east-2`:** a SCP do plano gratuito da "nova experiência AWS" só libera serviços regionais nessa região; efeito de LGPD tratado na §7.
+- **D-023, ingestão em memória e números como texto:** o objeto de até 5 MB é lido inteiro; valores metrológicos são gravados como texto para preservar a escala 10.
+- **D-024 e D-025, `fn-certificado` e `fn-api`:** o nome de exibição do "Gerado por" é lido do Cognito no momento da emissão e não é gravado em tabela, evento nem log.
+- **D-026, CloudFront fora do template:** o plano gratuito do CloudFront exige um WAF em `us-east-1`, região negada pela SCP.
+- **D-027, interface servida pelo próprio HTTP API:** a `fn-web` (Node.js 22) lê a SPA do bucket privado e a entrega nas rotas `GET /` e `GET /{proxy+}`, com HTTPS do API Gateway, na mesma origem da API e sem CloudFront. Substitui a D-016 (§3 e §6).
+
 ## 3. Arquitetura implementada
+
+```
+ Navegador (React) ── HTTPS ──► API Gateway HTTP API (us-east-2, autorizador JWT do Cognito)
+   │                               ├─ GET / e GET /{proxy+} ─► fn-web ──► S3 web (privado): a SPA
+   │ 1. login (InitiateAuth) ──► Cognito
+   │ 2. POST /uploads (JWT) ───────┼─► fn-api ──► URL PUT pré-assinada (5 min, 5 MB)
+   │ 3. PUT da planilha ─────────► S3 entrada  uploads/<sub>/<id>.xlsx
+   │                                   │ 4. s3:ObjectCreated (assíncrono)
+   │                                   ▼
+   │                              fn-ingestao ── núcleo AV03 ──► DynamoDB (HASH# na mesma transação)
+   │                                   │ 6. destino de sucesso            falha ──► SQS (fila de falhas)
+   │                                   ▼
+   │                              fn-certificado ── PDFBox + QR ──► S3 certificados/<id>.pdf; TOKEN#
+   │ 10. GET /calibracoes, /calibracoes/{id}, /pdf (JWT)   ·   GET /verificacao/{token} (público)
+```
+
+**Interface servida pela `fn-web` (D-027).** O CloudFront previsto na D-016 não pôde ser usado: o plano
+gratuito dele exige um WAF em `us-east-1`, e a SCP da conta só libera `us-east-2` (D-026). A interface
+passou a ser servida pelo próprio HTTP API. A SPA compilada pelo Vite fica no bucket `web`, privado, e uma
+quinta função, `fn-web` (Node.js 22, 256 MB, cerca de 100 linhas em `infra/fn-web/index.mjs`, sem
+dependências empacotadas, porque o SDK v3 já vem no runtime), atende às rotas `GET /` e `GET /{proxy+}`
+sem autorizador. As rotas da API, mais específicas, têm precedência sobre o `{proxy+}`. Caminho sem
+extensão (`/`, `/verificar/<token>`) recebe o `index.html`, para a SPA decidir a tela; arquivo com
+extensão é lido do bucket (404 se não existe); caminho com `..` é recusado. O `index.html` sai com
+`Cache-Control: no-cache` e os assets, que têm hash no nome, com cache de um ano. Ganhos: HTTPS sem WAF,
+a Lambda na cota permanente, interface e API na mesma origem (a API não precisa de CORS para a tela) e a
+URL do QR Code conhecida no próprio stack. A função só tem `s3:GetObject` no bucket `web` e não registra o
+caminho pedido, porque a rota de verificação carrega o token do certificado. Oito testes com `node:test`
+cobrem rotas da SPA, cache, binário em base64, 404, 405, `%` malformado e a falha do S3 sem detalhe.
+
+**Ciclo de dependências evitado.** O CORS dos buckets de entrada e de certificados passou a liberar a
+origem da própria API (o navegador faz o `PUT` e o download direto no S3). Como o SAM gera a definição da
+API com a integração da `fn-api`, a API depende da `fn-api`; se a `fn-api` continuasse a referenciar os
+buckets com `!Ref`, haveria o ciclo `BucketEntrada → Api → FnApi → BucketEntrada`. A `fn-api` passou a
+montar nome e ARN dos buckets pelo nome do stack, como a `fn-ingestao` já fazia. Um verificador de
+dependências escrito para esta entrega confirmou o template sem ciclos (e detecta o ciclo quando o `!Ref`
+volta).
 
 **Estrutura de módulos (D-017).** O projeto é um Maven multimódulo: `nucleo` (cálculo metrológico e leitura da planilha, só com o Apache POI), `app-local` (tela e API da AV03, com Spring Boot) e `funcoes` (Lambdas, a partir da T05). O POM pai mantém o `spring-boot-starter-parent` para herdar a gestão de versões, mas só o `app-local` declara dependência do Spring. O cálculo de SHA-256 em streaming (`Medidor`) foi para o `nucleo`, porque a `fn-ingestao` também precisa dele; o log continua no `ProcessamentoService`.
 
@@ -62,6 +143,52 @@ RNF-15: em 768 px de largura, botões e campo de arquivo têm 44 px de altura, a
 
 O aceite pedia a lista com os envios da T09 e da T11. Os usuários de teste daquelas tarefas tinham sido apagados, e um usuário recriado no Cognito recebe outro `sub`. Como o dono de cada envio é o `sub`, aqueles envios não aparecem para ninguém, que é o comportamento esperado do controle de acesso. Os dois conjuntos foram reproduzidos com um mesmo usuário: o `infra/smoke.sh` refez os cenários da T09 (todos passaram com a função nova) e a tela processou as planilhas da T11. A lista mostrou os 9 envios, do mais recente para o mais antigo; o detalhe de um envio emitido baixou um PDF com SHA-256 igual ao gravado, e o de um envio rejeitado mostrou as regras R10, R11 e R14. Na largura de tablet a lista cabe sem rolagem lateral. Evidências: `docs/av04/evidencias/respostas/t12-historico.txt` e `docs/av04/evidencias/tela/t12-1-duplicada-abre-historico.jpg` a `t12-5-lista-736px.jpg`. Limitações: só os 20 envios mais recentes, sem paginação; a ordem segue a última transição, não a data de envio; e o índice é eventualmente consistente, então um envio de segundos atrás pode só aparecer depois de "Atualizar".
 
+**Indicadores de gestão (AV04).** Acima da lista, o histórico mostra seis indicadores calculados sobre os
+envios listados: total de envios, certificados emitidos, pareceres `APROVADO` e `REPROVADO`, planilhas
+rejeitadas e envios em andamento. Eles respondem às perguntas do engenheiro ao abrir a plataforma ("o que
+já saiu, o que reprovou, o que preciso corrigir") e antecipam o painel operacional da AV01 (RF-20), que
+em produção pediria uma consulta por estado, e não só pelo usuário. Os indicadores usam os enums literais
+nos rótulos dos pareceres e a mesma cor de borda dos selos.
+
+**Página pública de verificação (T13, D-015).** A "validação por QR Code" do roteiro é a rota
+`/verificar/<token>`, aberta pela câmera do celular a partir do QR Code impresso no PDF, sem login. A
+página consulta `GET /verificacao/{token}` e mostra identificador, data de emissão (America/Sao_Paulo),
+parecer (enum literal e rótulo) e o SHA-256 do PDF registrado na emissão. Token fora do formato e token
+inexistente têm a mesma resposta ("certificado não encontrado"), para não ajudar quem tenta adivinhar.
+Como um PDF não pode conter o próprio hash, a integridade do documento é provada por uma conferência no
+próprio aparelho: a pessoa escolhe o PDF recebido, a página calcula o SHA-256 com a Web Crypto API, sem
+enviar o arquivo a servidor nenhum, e compara com o registrado ("Arquivo íntegro" ou "este PDF não é o
+documento emitido"). Em `/verificar`, sem token, a página pede o código impresso, para quem não consegue
+ler o QR; a tela de login tem um link para ela. O layout foi conferido a 375 px de largura (celular), com
+o hash quebrando linha sem rolagem lateral; o QR Code do PDF aponta para a URL da plataforma, que o stack
+conhece (`UrlVerificacaoBase=api`, D-027).
+
+**Telas.**
+
+![Login no Cognito](evidencias/tela/t10-login.jpg)
+
+*Figura 1 — Login: a senha vai do navegador ao Cognito, e o token fica só em memória.*
+
+![Resultado aprovado](evidencias/tela/t11-3-aprovado.jpg)
+
+*Figura 2 — Processamento de `ok-aprovado.xlsx` na nuvem: parecer `APROVADO`, pontos `DENTRO_DA_TOLERANCIA` e botão de download do certificado.*
+
+![Planilha rejeitada](evidencias/tela/t11-5-rejeitada.jpg)
+
+*Figura 3 — Planilha fora do contrato: `REJEITADA`, com linha, coluna e regra de cada erro.*
+
+![Histórico](evidencias/tela/t12-2-lista.jpg)
+
+*Figura 4 — Histórico dos envios do usuário (T12).*
+
+![Certificado em PDF](evidencias/tela/relatorio-pdf.png)
+
+*Figura 5 — Certificado gerado pela `fn-certificado`: "Gerado por", hash da planilha, tabela de pontos, parecer, token e QR Code.*
+
+![Verificação pública no celular](evidencias/tela/t13-verificacao-local-390px.jpg)
+
+*Figura 6 — Página pública de verificação a 390 px (servida pela `fn-web` em teste local, com a resposta da CT-403).*
+
 ## 6. Roteiro de deploy na AWS
 
 **Pré-requisitos (T02, 24 e 25/10/2026).** AWS CLI v2.36.40, SAM CLI 1.170.0, Node v24.11.1 / npm 11.6.2 e JDK 21 (Temurin 21.0.10) instalados e conferidos. Na conta definitiva, credenciais só no perfil `pa3` do AWS CLI, região `us-east-2`, com o usuário IAM `pa3-deploy` (`AdministratorAccess`, sem senha de console, só access key). Verificação em 25/10/2026: `aws sts get-caller-identity --profile pa3` devolve o ARN `user/pa3-deploy` e `aws dynamodb list-tables` em `us-east-2` devolve lista vazia, sem negação da SCP. `.gitignore` com `.aws-sam/` e `.claude/commands/` versionável.
@@ -72,6 +199,41 @@ O aceite pedia a lista com os envios da T09 e da T11. Os usuários de teste daqu
 
 **Template e primeiro deploy (T08).** O back-end é um único stack SAM, `infra/template.yaml`, publicado por `infra/deploy.sh` (`./mvnw package`, `sam validate --lint` e `sam deploy --profile pa3 --region us-east-2`). O `sam build` não resolve o módulo `nucleo`, então o `CodeUri` aponta para o JAR sombreado, e o script o gera antes. Os nomes dos buckets levam um sufixo do `StackId`, sem número de conta, e o papel da `fn-ingestao` monta o ARN do bucket de entrada pelo nome para evitar o ciclo bucket → notificação → função → papel → bucket. O primeiro `sam deploy` abortou duas vezes por pedir confirmação do *changeset*, que não funciona num terminal sem teclado; o script ganhou `CONFIRMAR_CHANGESET=nao`, usado depois de revisar a lista de recursos. O stack chegou a `CREATE_COMPLETE` com 31 recursos, e a lista de tipos confere com a prevista (S3, DynamoDB, Lambda, SQS, Cognito, Logs, IAM e HTTP API), sem NAT Gateway, KMS, WAF, EC2 nem CloudFront. `aws s3api get-bucket-lifecycle-configuration` nos buckets confirma a regra: `GLACIER_IR` aos 365 dias, expiração aos 1 825, versões antigas em 30 dias e uploads incompletos abortados em 7. O CloudFront ficou fora (D-026): o plano gratuito exige um WAF em `us-east-1`, região negada pela SCP desta conta (D-022). O bucket gerenciado `aws-sam-cli-managed-default-samclisourcebucket-…` guarda apenas o JAR e o template.
 
+**Interface (T14, D-027).** O `infra/deploy.sh` passou a publicar também a `fn-web` e as rotas `GET /` e
+`GET /{proxy+}`, e o `infra/deploy-web.sh` publica a interface: gera o `web/.env` a partir das saídas do
+stack, compila a SPA (`npm ci && npm run build`) e sincroniza `web/dist` com o bucket `web`, enviando os
+assets antes e o `index.html` por último, para que ninguém receba uma página que aponta para um asset ainda
+não enviado. Ao fim, confere que a raiz responde 200. O `infra/smoke-web.sh` testa a interface publicada
+(rotas da SPA, 404, 401 da API sem token, HTTP simples recusado, cache e cabeçalhos de segurança) e grava
+`docs/av04/evidencias/respostas/web-interface.txt`.
+
+### Roteiro de deploy do zero (reprodutível)
+
+Pré-requisitos: conta AWS no plano gratuito, AWS CLI v2, AWS SAM CLI, JDK 21, Node.js 22 ou 24 e Git Bash
+(no Windows). Todos os scripts aceitam `PERFIL`, `REGIAO` e `STACK` por variável de ambiente; os padrões
+são `pa3`, `us-east-2` e `pa3-av04`.
+
+1. **Proteger a conta antes de criar recursos** (AV02 §2.2.4): MFA no login humano; em *Billing*, ativar
+   os alertas do Free Tier; criar no AWS Budgets o *Zero spend budget* e o orçamento de US$ 1/mês.
+2. **Credencial de deploy:** usuário IAM sem console, com access key só no perfil local
+   (`aws configure --profile pa3`, região `us-east-2`, saída `json`). Conferir com
+   `aws sts get-caller-identity --profile pa3`.
+3. **Clonar e testar:** `git clone https://github.com/NicolasKLange/projeto-aplicado-iii.git`, depois
+   `./mvnw test` (154 testes, 1 pulado) e `node --test infra/fn-web/index.test.mjs` (8 testes).
+4. **Back-end:** `infra/deploy.sh`. O script gera o JAR sombreado, roda `sam validate --lint` e
+   `sam deploy`; revise a lista do *changeset* e confirme (sem terminal interativo,
+   `CONFIRMAR_CHANGESET=nao`). Resultado: stack em `CREATE_COMPLETE` ou `UPDATE_COMPLETE`.
+5. **Interface:** `infra/deploy-web.sh`. Ao fim ele imprime a URL da plataforma com HTTP 200.
+6. **Usuários:** sem autocadastro. Para cada pessoa, `cognito-idp admin-create-user` com os atributos
+   `email`, `email_verified=true` e `name` e, em seguida, `admin-set-user-password --permanent` (os
+   comandos estão em `docs/av04/roteiro-video.md`, bloco 0).
+7. **Conferir:** `infra/smoke.sh` (pipeline de ponta a ponta, CT-401 a CT-408) e `infra/smoke-web.sh`
+   (interface, CT-410 e CT-414). Abrir a URL numa aba anônima, processar `ok-aprovado.xlsx`, baixar o PDF e
+   ler o QR Code com o celular.
+8. **Encerrar depois da nota:** esvaziar os buckets (`aws s3 rm s3://<bucket> --recursive`; com
+   versionamento, apagar também as versões) e rodar `sam delete --stack-name pa3-av04 --profile pa3
+   --region us-east-2`.
+
 ## 7. Segurança e LGPD
 
 **API (T07).** Todas as rotas, exceto `GET /verificacao/{token}`, dependem do autorizador JWT (T08) e usam como dono apenas o `sub` do token. Um envio alheio é indistinguível de um inexistente (404 idêntico, teste compara os corpos), o `idOriginal` de uma duplicata não é exposto e o log carrega só `uploadId`, SHA-256, tamanho e resultado (teste confere que `sub`, URL e chave não aparecem). A rota pública não devolve `sub` nem nome. O token de verificação tem 32 caracteres alfanuméricos sorteados com `SecureRandom` (cerca de 190 bits), e valor fora do formato responde 404 sem consultar a tabela.
@@ -80,11 +242,55 @@ O aceite pedia a lista com os envios da T09 e da T11. Os usuários de teste daqu
 
 **Sessão no navegador (T10).** Os tokens ficam só em memória (estado React), nunca em `localStorage`, `sessionStorage` ou cookie: um script injetado (XSS) não encontra token gravado para ler depois, e o token não sobrevive a recarregar a página, que pede login de novo (declarado como escolha de segurança, não como defeito). Em memória o token ainda é visível a um script que rode durante a sessão, então a mitigação reduz a janela de exposição, não elimina o XSS. A mensagem de erro de login é a mesma para e-mail inexistente e senha errada (com `PreventUserExistenceErrors` o Cognito já responde igual) e o campo de senha é limpo após a falha. Resposta 200 sem token (desafio `NEW_PASSWORD_REQUIRED`) é tratada como falha de login.
 
+**Cabeçalhos da interface (D-027).** A `fn-web` entrega todas as respostas com `Content-Security-Policy`
+restritiva (script e estilo só da própria origem, `connect-src` só para a própria API e os endpoints
+`*.amazonaws.com` do Cognito e do S3, `frame-ancestors 'none'`, `object-src 'none'`), HSTS de um ano,
+`X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` e `Referrer-Policy: no-referrer`. O último
+importa na página de verificação, cujo caminho carrega o token: um link clicado ali não leva o token no
+cabeçalho `Referer`. A CSP sem `unsafe-inline` reforça a mitigação de XSS descrita acima. O API Gateway só
+atende HTTPS; não existe ponto de acesso HTTP.
+
+**Verificação pública.** A conferência do PDF calcula o hash no navegador, e o arquivo não sai do
+aparelho de quem verifica. A página não mostra nome de pessoa: só o que a rota pública devolve.
+
 ## 8. Custo e Free Tier
 
 **Monitoramento (T02).** Dois orçamentos no AWS Budgets da conta definitiva: A-1 *Zero spend budget* (alerta quando o custo real passa de US$ 0,01) e A-2 de US$ 1,00/mês (custo real acima de 85% e de 100%, previsto acima de 100%). O e-mail direto do Budgets não pôde ser verificado, porque o serviço `notifications-contacts` é negado pela SCP do plano; os quatro alertas publicam num tópico SNS em `us-east-2` com assinatura por e-mail confirmada (D-022), dentro da cota Always Free do SNS. Print da lista de orçamentos em `docs/av04/evidencias/tela/budgets-conta-nova.png`, sem número de conta. Painel do plano gratuito em 25/10/2026: US$ 100,00 de créditos restantes, 183 dias (até 24/04/2027), US$ 0,00 no mês, sem cobrança. A previsão de fim de mês aparece como "Data unavailable" por falta de histórico de uso, o que é esperado em conta nova.
 
+**Serviços implantados e enquadramento.** Todos os recursos do stack ou estão numa cota permanente
+(*Always Free*) ou consomem os créditos do plano gratuito, que não gera fatura (D-006). Nenhum tem
+cobrança por hora ligada.
+
+| Serviço | Uso na PoC | Cota gratuita | Enquadramento |
+| --- | --- | --- | --- |
+| AWS Lambda (5 funções) | dezenas de invocações por dia de teste; ~1 GB·s por certificado | 1 milhão de requisições e 400 000 GB·s/mês | Permanente |
+| Amazon DynamoDB (provisionado) | tabela 5/5 + GSI2 5/5 = 10 RCU e 10 WCU | 25 GB, 25 RCU e 25 WCU | Permanente |
+| Amazon Cognito | até 10 usuários | 10 000 usuários ativos/mês (nível Lite) | Permanente |
+| Amazon SQS (fila de falhas) | só eventos com falha | 1 milhão de requisições/mês | Permanente |
+| Amazon SNS (alertas do Budgets) | poucos e-mails | 1 000 e-mails/mês | Permanente |
+| CloudWatch Logs | 5 grupos, retenção de 30 dias, poucos MB | 5 GB/mês | Permanente |
+| AWS Budgets | 2 orçamentos | 2 orçamentos com ação | Permanente |
+| Amazon S3 (4 buckets: entrada, certificados, web e o do SAM) | < 50 MB, alguns milhares de requisições | sem cota permanente em conta nova | Créditos (centavos) |
+| API Gateway HTTP API (API e interface, D-027) | alguns milhares de chamadas | sem cota permanente em conta nova | Créditos (centavos) |
+
+A D-027 acrescenta à conta de créditos as requisições da interface: cada abertura da página faz três
+chamadas (HTML, JS e CSS) e o navegador guarda os assets em cache por um ano. Mesmo com mil aberturas no
+mês, são cerca de 3 000 chamadas, frações de centavo de dólar na tarifa pública do HTTP API. O CloudFront
+da D-016 deixou de ser criado e, com ele, o risco de uma distribuição fora do plano gratuito.
+
 ## 9. Evidências
+
+O catálogo completo dos casos de teste (CT-401 a CT-418), com comando de reprodução e situação, está em
+`docs/av04/evidencias.md`. Testes automatizados em 27/10/2026, num clone limpo, sem credenciais nem
+configuração da AWS: `./mvnw test` com 154 testes, 0 falhas e 1 pulado (69 no `nucleo`, 15 no `app-local`
+e 70 nas `funcoes`), `node --test infra/fn-web/index.test.mjs` com 8 testes e `npm run build` sem erro.
+Esse clone limpo revelou um defeito de portabilidade: o teste de ambiente da `fn-certificado` só passava
+em máquina com região AWS configurada, porque o construtor criava o cliente do SDK antes de conferir as
+variáveis de ambiente (Java avalia os argumentos da esquerda para a direita). As variáveis passaram a ser
+conferidas primeiro.
+
+**Vídeo.** A execução completa na nuvem, da tela de login à verificação pelo celular e ao console da AWS
+com custo zero, está no vídeo narrado (link no cabeçalho), gravado segundo `docs/av04/roteiro-video.md`.
 
 **Teste de ponta a ponta na nuvem (T09).** O script `infra/smoke.sh` percorre o back-end implantado (`pa3-av04`, `us-east-2`) só com `curl` e AWS CLI, lendo URL da API, user pool, cliente e tabela das saídas do stack. Cria um usuário de teste com atributo `name` e senha aleatória por execução, obtém o token por `USER_PASSWORD_AUTH` (o autorizador JWT confere `aud`, então vale o *ID token*) e apaga o usuário ao final. Os arquivos de entrada são as planilhas sintéticas do repositório. As respostas gravadas em `docs/av04/evidencias/respostas/` passam por `jq` e por uma varredura final que recusa JWT, parâmetro de URL pré-assinada e número de conta.
 
@@ -103,7 +309,24 @@ Log da `fn-ingestao` no CloudWatch (`log-fn-ingestao.txt`): cada execução regi
 
 ## 10. Matriz de Rastreabilidade de Requisitos
 
+<!-- incluir: matriz-rastreabilidade.md -->
+
 ## 11. Limitações e roadmap
+
+**Fora do recorte da AV04 (D-018), em ordem de prioridade para produção.** (1) Aprovação do signatário
+entre a minuta e a emissão, com a segregação da RN-12 garantida por condição na gravação; (2) numeração
+anual sequencial sem lacuna (RN-14) e S3 Object Lock no bucket de certificados, em modo *compliance* com 5
+anos; (3) tabela `auditoria` somente de inserção (RNF-04, RN-24, T19); (4) incerteza de medição, *k* e
+*veff* (R-46 a R-50); (5) MFA por TOTP e troca de senha no primeiro acesso; (6) painel operacional global
+por estado (RF-20) e tendência por instrumento (RF-22), já comportados pelo modelo de índices da AV02;
+(7) região `sa-east-1` e SSE-KMS com chave do cliente (D-009, D-022).
+
+**Interface sem cache de borda (D-027).** Sem CloudFront, cada abertura da página passa pelo API Gateway e
+pela `fn-web`, e a primeira requisição depois de um período ocioso sofre a partida a frio da função (Node.js,
+centenas de milissegundos). Aceitável na PoC; em produção, CloudFront na frente do mesmo bucket.
+
+**Sessão curta.** O token fica só em memória: recarregar a página pede login de novo (escolha de segurança,
+§7).
 
 **Segundo fator de autenticação (T08).** O user pool não exige MFA, embora a AV02 (§4.2.3) o previsse para os clientes internos. A disponibilidade e o custo do TOTP no plano do Cognito não foram verificados; fica como limitação da PoC e como item de produção.
 
@@ -114,9 +337,24 @@ Log da `fn-ingestao` no CloudWatch (`log-fn-ingestao.txt`): cada execução regi
 ## 12. Premissas e pontos a validar
 
 - **[PREMISSA]** O PDF do roteiro da AV04 pula da seção 2 para a 5. Perguntas ao professor enviadas em 24/10/2026 (seções 3 e 4 trazem requisitos? Plataforma Web com página pública de verificação por QR Code; vídeo "não listado" no YouTube). Sem resposta até a data. Na AV03 o professor já havia enviado arquivo com numeração errada, confirmado por mensagem, sem conteúdo nas seções faltantes; seguimos assumindo que não há requisitos além dos presentes no documento.
-- **[PREMISSA]** O plano gratuito do CloudFront aceita OAC? A página de preços não informa; confirmar na criação da distribuição (T10).
+- **[RESOLVIDO 27/10]** CloudFront e OAC no plano gratuito: a questão deixou de existir. O plano exige WAF em `us-east-1`, negado pela SCP (D-026), e a interface passou a ser servida pela `fn-web` no próprio HTTP API (D-027).
+- **[PREMISSA]** Requisições do API Gateway e do S3 consomem créditos do plano gratuito, sem fatura, como já previa a AV02 §2.1.4. Confirmar no painel do plano gratuito depois do vídeo (CT-415).
 - **[RESOLVIDO 25/10]** Região: a SCP do plano gratuito só libera `us-east-2`; a AV02 assumia `sa-east-1`. Decidido na D-022, com o efeito de LGPD tratado na §7.
 - **[RESOLVIDO 25/10]** MFA do login humano: ativo no AWS Builder ID, com dois dispositivos (WebAuthn e TOTP). Evidência: `docs/av04/evidencias/tela/mfa-tarjado.png` (e-mails e IP tarjados).
 - **[PREMISSA]** O usuário IAM `pa3-deploy` não tem MFA: não tem senha de console e só usa access key, guardada apenas no perfil local `pa3`. A chave é desativada depois da nota.
 
 ## Referências
+
+- AWS. *AWS Free Tier* e *Choosing an AWS Free Tier plan*. https://aws.amazon.com/free/ · https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier-plans.html
+- AWS Lambda. *Lambda runtimes* (`java21`, `nodejs22.x`). https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html
+- AWS Lambda. *Using AWS Lambda with Amazon S3* e *Asynchronous invocation — destinations*. https://docs.aws.amazon.com/lambda/latest/dg/with-s3.html · https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-retain-records.html
+- Amazon API Gateway. *Working with HTTP APIs* (rotas, `{proxy+}`, autorizador JWT). https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api.html
+- Amazon S3. *Uploading objects with presigned URLs*, *Lifecycle* e *CORS*. https://docs.aws.amazon.com/AmazonS3/latest/userguide/PresignedUrlUploadObject.html · https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html
+- Amazon DynamoDB. *TransactWriteItems* e *Provisioned capacity*. https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TransactWriteItems.html
+- Amazon Cognito. *InitiateAuth* (`USER_PASSWORD_AUTH`). https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_InitiateAuth.html
+- AWS CloudFormation. *AWS::PricingPlanManager::Subscription* (plano gratuito do CloudFront, D-026). https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-pricingplanmanager-subscription.html
+- AWS SAM. *AWS::Serverless::Function* e *AWS::Serverless::HttpApi*. https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification.html
+- W3C. *Web Cryptography API* (`SubtleCrypto.digest`, usado na conferência do PDF). https://www.w3.org/TR/WebCryptoAPI/
+- W3C. *Content Security Policy Level 3*. https://www.w3.org/TR/CSP3/
+- IETF. RFC 9457, *Problem Details for HTTP APIs*. https://www.rfc-editor.org/rfc/rfc9457
+- Grupo 39. Entregas AV01 (15/09/2026), AV02 (02/10/2026) e AV03 (15/10/2026) do Projeto Aplicado III.

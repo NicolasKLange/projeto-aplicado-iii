@@ -79,6 +79,7 @@ export default function Historico({ token, aoExpirar }) {
       {lista.tipo === 'pronta' && lista.itens.length === 0 && (
         <div className="mensagem" aria-live="polite">Nenhum envio ainda. Processe uma planilha para começar.</div>
       )}
+      {lista.tipo === 'pronta' && lista.itens.length > 0 && <Resumo itens={lista.itens} />}
       {lista.tipo === 'pronta' && lista.itens.length > 0 && (
         <section className="cartao">
           <div className="rolagem">
@@ -112,6 +113,44 @@ export default function Historico({ token, aoExpirar }) {
         </section>
       )}
     </>
+  );
+}
+
+/** Indicadores de gestão sobre os envios listados (os mesmos 20 da tabela, não o acervo inteiro). */
+export function contar(itens) {
+  const conta = { total: itens.length, emitidas: 0, aprovadas: 0, reprovadas: 0, rejeitadas: 0, andamento: 0 };
+  for (const item of itens) {
+    if (item.estado === 'EMITIDA') conta.emitidas += 1;
+    if (item.estado === 'REJEITADA') conta.rejeitadas += 1;
+    if (item.estado === 'PROCESSANDO' || item.estado === 'PROCESSADA') conta.andamento += 1;
+    if (item.parecer === 'APROVADO') conta.aprovadas += 1;
+    if (item.parecer === 'REPROVADO') conta.reprovadas += 1;
+  }
+  return conta;
+}
+
+function Resumo({ itens }) {
+  const c = contar(itens);
+  const indicadores = [
+    { rotulo: 'Envios', valor: c.total, classe: '' },
+    { rotulo: 'Certificados emitidos', valor: c.emitidas, classe: '' },
+    { rotulo: 'APROVADO', valor: c.aprovadas, classe: 'ok' },
+    { rotulo: 'REPROVADO', valor: c.reprovadas, classe: 'falha' },
+    { rotulo: 'Planilhas rejeitadas', valor: c.rejeitadas, classe: 'falha' },
+    { rotulo: 'Em andamento', valor: c.andamento, classe: '' },
+  ];
+  return (
+    <section aria-labelledby="titulo-resumo">
+      <h2 id="titulo-resumo" className="visualmente-oculto">Resumo dos envios listados</h2>
+      <ul className="resumo">
+        {indicadores.map((i) => (
+          <li key={i.rotulo} className={i.classe}>
+            <span className="valor">{i.valor}</span>
+            <span className="rotulo">{i.rotulo}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

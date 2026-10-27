@@ -53,3 +53,6 @@ nucleo/src/test/resources/local/
 # Documentos com dados reais e material do professor
 docs/av01/
 **/roteiro-*.pdf
+
+# Relatório: HTML intermediário (o PDF entra no Git)
+docs/av04/AV4_Projeto_Aplicado_III.html

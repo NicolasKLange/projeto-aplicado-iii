@@ -3,21 +3,16 @@ import { entrar } from './cognito.js';
 import Historico from './Historico.jsx';
 import Processamento from './Processamento.jsx';
 import { lerUsuario } from './token.js';
-
-// Rota pública /verificar/<token>: entra na T14. Aqui só reservamos o caminho.
-const ROTA_PUBLICA = /^\/verificar\/[^/]+$/;
+import Verificacao, { tokenDaRota } from './Verificacao.jsx';
 
 // Tokens só em memória (estado React): recarregar a página pede login de novo, por decisão (T10).
 export default function App() {
   const [token, setToken] = useState(null);
 
-  if (ROTA_PUBLICA.test(window.location.pathname)) {
-    return (
-      <main>
-        <h1>Verificação de certificado</h1>
-        <p className="secundario">Disponível em breve.</p>
-      </main>
-    );
+  // Rota pública /verificar[/<token>] (T13): aberta pelo QR Code do PDF, sem login.
+  const tokenVerificacao = tokenDaRota(window.location.pathname);
+  if (tokenVerificacao !== null) {
+    return <Verificacao token={tokenVerificacao} />;
   }
   if (!token) {
     return <Login aoEntrar={setToken} />;
@@ -62,6 +57,7 @@ function Login({ aoEntrar }) {
         <button type="submit" disabled={ocupado}>{ocupado ? 'Entrando…' : 'Entrar'}</button>
       </form>
       <p className="mensagem erro" role="alert" aria-live="polite">{erro}</p>
+      <p className="rodape">Recebeu um certificado? <a href="/verificar">Verifique a autenticidade</a> sem login.</p>
     </main>
   );
 }

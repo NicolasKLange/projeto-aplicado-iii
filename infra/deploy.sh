@@ -8,12 +8,16 @@ export SAM_CLI_TELEMETRY=0
 
 cd "$(dirname "$0")/.."
 
-PERFIL=pa3
-REGIAO=us-east-2
-STACK=pa3-av04
+PERFIL="${PERFIL:-pa3}"
+REGIAO="${REGIAO:-us-east-2}"
+STACK="${STACK:-pa3-av04}"
 ORIGENS_WEB="${ORIGENS_WEB:-http://localhost:5173}"
-URL_VERIFICACAO_BASE="${URL_VERIFICACAO_BASE:-http://localhost:5173}"
+# "api" = o QR Code aponta para a própria API, que serve a interface (D-027). Sempre enviado: num
+# stack existente, parâmetro omitido mantém o valor anterior.
+URL_VERIFICACAO_BASE="${URL_VERIFICACAO_BASE:-api}"
 CONFIRMAR_CHANGESET="${CONFIRMAR_CHANGESET:-sim}"
+
+PARAMETROS=("OrigensWeb=${ORIGENS_WEB}" "UrlVerificacaoBase=${URL_VERIFICACAO_BASE}")
 
 if [ "$CONFIRMAR_CHANGESET" = "nao" ]; then
   CONFIRMACAO=--no-confirm-changeset
@@ -35,4 +39,6 @@ sam deploy \
   --capabilities CAPABILITY_IAM \
   "$CONFIRMACAO" \
   --no-fail-on-empty-changeset \
-  --parameter-overrides "OrigensWeb=${ORIGENS_WEB}" "UrlVerificacaoBase=${URL_VERIFICACAO_BASE}"
+  --parameter-overrides "${PARAMETROS[@]}"
+
+echo "Back-end publicado. Próximo passo: infra/deploy-web.sh (publica a interface)."

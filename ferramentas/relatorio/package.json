@@ -1,0 +1,12 @@
+{
+  "name": "gerar-relatorio",
+  "private": true,
+  "type": "module",
+  "description": "Gera o PDF do relatório da AV04 a partir de docs/av04/AV4_fonte.md (Markdown → HTML → PDF pelo Chrome/Edge headless).",
+  "scripts": {
+    "pdf": "node gerar-relatorio.mjs"
+  },
+  "dependencies": {
+    "marked": "18.1.2"
+  }
+}

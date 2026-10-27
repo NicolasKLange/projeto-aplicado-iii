@@ -432,3 +432,104 @@ button.secundaria:hover:not(:disabled) {
     white-space: normal;
   }
 }
+
+/* Indicadores de gestão do histórico (AV04) */
+.resumo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.75rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.resumo li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--borda);
+  border-left: 4px solid var(--primaria);
+  border-radius: 0.25rem;
+  background: var(--superficie);
+}
+
+.resumo li.ok {
+  border-left-color: var(--ok-borda);
+}
+
+.resumo li.falha {
+  border-left-color: var(--falha-borda);
+}
+
+.resumo .valor {
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.resumo .rotulo {
+  color: var(--secundario);
+  font-size: 0.875rem;
+}
+
+/* Verificação pública (T13): página de celular, aberta pelo QR Code */
+main.verificacao {
+  max-width: 40rem;
+}
+
+.cartao.autentico {
+  border-left: 4px solid var(--ok-borda);
+}
+
+.dados {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.5rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.dados dt {
+  color: var(--secundario);
+  font-weight: 700;
+}
+
+.dados dd {
+  margin: 0;
+  min-width: 0;
+}
+
+.hash {
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+.mensagem.sucesso {
+  border-left-color: var(--ok-borda);
+  color: var(--ok-texto);
+  background: var(--ok-fundo);
+}
+
+.rodape {
+  margin-top: 2rem;
+  color: var(--secundario);
+  font-size: 0.875rem;
+}
+
+.rodape a {
+  color: var(--primaria);
+}
+
+input[type='file'] {
+  max-width: 100%;
+}
+
+@media (max-width: 30rem) {
+  .dados {
+    grid-template-columns: 1fr;
+  }
+
+  .dados dd {
+    margin-bottom: 0.5rem;
+  }
+}

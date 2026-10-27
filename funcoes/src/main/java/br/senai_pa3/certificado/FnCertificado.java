@@ -56,12 +56,22 @@ public class FnCertificado implements RequestHandler<Map<String, Object>, Map<St
     }
 
     FnCertificado(UnaryOperator<String> ambiente) {
-        this(new RepositorioCalibracoesDynamoDb(DynamoDbClient.create(), exigir(ambiente, VARIAVEL_TABELA)),
-                new S3ArmazenamentoCertificados(S3Client.create(), exigir(ambiente, VARIAVEL_BUCKET)),
-                new CognitoConsultaUsuarios(CognitoIdentityProviderClient.create(),
-                        exigir(ambiente, VARIAVEL_USER_POOL)),
-                new GeradorCertificado(), Clock.systemUTC(), new SecureRandom(),
-                exigir(ambiente, VARIAVEL_URL));
+        this(new Ambiente(exigir(ambiente, VARIAVEL_TABELA), exigir(ambiente, VARIAVEL_BUCKET),
+                exigir(ambiente, VARIAVEL_USER_POOL), exigir(ambiente, VARIAVEL_URL)));
+    }
+
+    /**
+     * Variáveis conferidas antes de criar os clientes do SDK: os argumentos são avaliados da esquerda
+     * para a direita, e um {@code create()} sem região (fora do Lambda) falharia antes da conferência.
+     */
+    private record Ambiente(String tabela, String bucket, String userPool, String urlBase) {
+    }
+
+    private FnCertificado(Ambiente a) {
+        this(new RepositorioCalibracoesDynamoDb(DynamoDbClient.create(), a.tabela()),
+                new S3ArmazenamentoCertificados(S3Client.create(), a.bucket()),
+                new CognitoConsultaUsuarios(CognitoIdentityProviderClient.create(), a.userPool()),
+                new GeradorCertificado(), Clock.systemUTC(), new SecureRandom(), a.urlBase());
     }
 
     public FnCertificado(RepositorioCalibracoes repositorio, ArmazenamentoCertificados armazenamento,

@@ -51,6 +51,27 @@ async function lerJson(resposta) {
   }
 }
 
+/**
+ * GET /verificacao/{token}, rota pública (T13): sem Authorization. Devolve { id, emitidoEm,
+ * parecer, sha256Pdf } ou null quando o certificado não existe (404, inclusive token malformado).
+ */
+export async function verificarCertificado(tokenVerificacao, signal) {
+  let resposta;
+  try {
+    resposta = await fetch(`${API_URL}/verificacao/${encodeURIComponent(tokenVerificacao)}`, { signal });
+  } catch (e) {
+    throw e.name === 'AbortError' ? e : new ErroApi('rede');
+  }
+  if (resposta.status === 404) {
+    return null;
+  }
+  const corpo = await lerJson(resposta);
+  if (!resposta.ok || !corpo) {
+    throw new ErroApi('problema', resposta.status, corpo);
+  }
+  return corpo;
+}
+
 /** POST /uploads → { uploadId, url, metodo, contentType, expiraEmSegundos }. */
 export function iniciarEnvio(token, tamanho, signal) {
   return chamar(token, '/uploads', {

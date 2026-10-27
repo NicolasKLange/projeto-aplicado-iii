@@ -3,7 +3,57 @@
 **Automação da emissão de certificados de calibração — Schulz S.A.**
 UniSENAI/SC · 2026.2 · Prof. MSc. Hugo Menezes Barra
 
-Autor: Rodrigo Mainardes Ribeiro
+Grupo 39: Adrian David Castillo Marcano · Nícolas Kretzschmar Lange · Rodrigo Mainardes Ribeiro
+
+## AV04 — Plataforma Web de Gestão na AWS
+
+A AV04 integra o diagnóstico (AV01), a arquitetura serverless (AV02) e o motor de cálculo (AV03) numa
+plataforma web publicada na AWS, dentro da Camada Gratuita:
+
+- **Login** no Amazon Cognito (sem autocadastro; token só em memória).
+- **Processar planilha:** upload direto ao S3 por URL pré-assinada → o evento dispara a `fn-ingestao`, que
+  roda o núcleo da AV03 → DynamoDB → a `fn-certificado` gera o PDF com QR Code → resultado na tela.
+- **Histórico** com indicadores de gestão (envios, emitidos, `APROVADO`, `REPROVADO`, rejeitadas) e
+  download do certificado.
+- **Verificação pública** em `/verificar/<token>`, aberta pelo QR Code no celular, sem login; confere o
+  SHA-256 do PDF no próprio aparelho.
+- **Idempotência:** o mesmo arquivo nunca gera dois certificados (`DUPLICADA`, RN-20).
+
+Tudo em `us-east-2` (D-022): 5 funções Lambda, 3 buckets S3 privados, DynamoDB provisionado, Cognito, um
+HTTP API e uma fila SQS de falhas. A interface é servida pelo próprio HTTP API, pela `fn-web`
+([D-027](docs/decisoes.md)), sem CloudFront. Documentos da entrega:
+
+| Documento | Arquivo |
+| --- | --- |
+| Relatório Técnico Integrado (PDF) | [`docs/av04/AV4_Projeto_Aplicado_III.pdf`](docs/av04/AV4_Projeto_Aplicado_III.pdf) (fonte: [`AV4_fonte.md`](docs/av04/AV4_fonte.md)) |
+| Matriz de Rastreabilidade de Requisitos | [`docs/av04/matriz-rastreabilidade.md`](docs/av04/matriz-rastreabilidade.md) |
+| Casos de teste e evidências | [`docs/av04/evidencias.md`](docs/av04/evidencias.md) |
+| Roteiro do vídeo | [`docs/av04/roteiro-video.md`](docs/av04/roteiro-video.md) |
+| Decisões D-001 a D-027 | [`docs/decisoes.md`](docs/decisoes.md) |
+
+### Deploy do zero
+
+Pré-requisitos: conta AWS no plano gratuito (com MFA e AWS Budgets configurados antes de tudo), AWS CLI
+v2 com um perfil de deploy, AWS SAM CLI, JDK 21, Node.js 22+ e Bash (Git Bash no Windows).
+
+```bash
+aws configure --profile pa3           # região us-east-2, saída json
+./mvnw test                           # 154 testes, 1 pulado
+node --test infra/fn-web/index.test.mjs
+infra/deploy.sh                       # back-end: JAR + sam validate + sam deploy
+infra/deploy-web.sh                   # interface: build da SPA + sync no bucket web; imprime a URL
+infra/smoke.sh                        # pipeline de ponta a ponta na nuvem (CT-401 a CT-408)
+infra/smoke-web.sh                    # interface publicada (CT-410, CT-414)
+```
+
+`PERFIL`, `REGIAO` e `STACK` (padrões `pa3`, `us-east-2`, `pa3-av04`) podem ser trocados por variável de
+ambiente. Usuários são criados pelo administrador (`cognito-idp admin-create-user` com `email`, `name` e
+`admin-set-user-password --permanent`; comandos no [roteiro do vídeo](docs/av04/roteiro-video.md)). A URL
+da plataforma é a saída `UrlPlataforma` do stack. Para remover tudo: esvazie os buckets e rode
+`sam delete --stack-name pa3-av04 --profile pa3 --region us-east-2`.
+
+Para desenvolver a tela contra a nuvem: `infra/gerar-env-web.sh && cd web && npm ci && npm run dev`
+(http://localhost:5173, origem liberada no CORS).
 
 ## O problema
 
@@ -125,12 +175,15 @@ app-local/     tela e API da AV03 sobre o núcleo (Spring Boot)
     aplicacao/   orquestração; SHA-256 e tamanho do arquivo no log
     web/         endpoint REST, DTOs e tratamento de erros
   src/main/resources/static/   interface (HTML, CSS e JavaScript, sem bibliotecas)
-funcoes/       funções Lambda (a partir da T05)
+funcoes/       funções Lambda em Java: fn-ingestao, fn-certificado (PDF + QR), fn-api; JAR sombreado
+web/           Plataforma Web (React + Vite): login, processamento, histórico, verificação pública
+infra/         template SAM, fn-web (Node.js, serve a SPA) e scripts de deploy e de teste na nuvem
 docs/decisoes.md             registro de decisões do projeto
 docs/av02/                   relatório da AV02 (arquitetura em nuvem)
 docs/av03/                   guia, contrato da planilha, oráculo e evidências de teste
-diagramas/                   diagrama de arquitetura da AV02 (.drawio, .png, .svg)
-ferramentas/                 gerador das planilhas sintéticas
+docs/av04/                   relatório, matriz, evidências, roteiro do vídeo, guia e modelo de dados
+diagramas/                   diagramas de arquitetura (.drawio, .png, .svg)
+ferramentas/                 gerador das planilhas sintéticas e do PDF do relatório (relatorio/)
 ```
 
 ## Dados e LGPD
@@ -143,13 +196,13 @@ diagnóstico da AV01 (RA-11, RA-12, RNF-07).
 A aplicação não grava o nome nem o conteúdo do arquivo enviado. O log registra apenas o
 SHA-256 e o tamanho, para rastreabilidade.
 
-## Limitações conhecidas (AV03)
+## Limitações conhecidas (AV04)
 
-- Sem persistência: cada envio é processado e respondido, sem gravação
-  ([D-014](docs/decisoes.md)). A persistência entra na AV04.
-- Sem autenticação de usuário.
-- Não gera o PDF do certificado.
-- Não calcula a incerteza de medição.
+A tela local da AV03 (`app-local`) continua sem persistência nem login; na nuvem, a AV04 resolve os dois.
+Ficam no roadmap ([D-018](docs/decisoes.md)): aprovação do signatário (RN-12), numeração sequencial e
+S3 Object Lock, tabela de auditoria somente de inserção, incerteza de medição (R-46 a R-50), MFA e troca de
+senha no primeiro acesso, região `sa-east-1` em conta paga. O histórico mostra só os 20 envios mais
+recentes do usuário. Detalhes na §11 do relatório.
 
 ## Entregas
 
@@ -158,6 +211,6 @@ SHA-256 e o tamanho, para rastreabilidade.
 | AV01 | Identificação do problema e levantamento de requisitos | 15/09/2026 | Entregue     |
 | AV02 | Arquitetura em nuvem                                    | 02/10/2026 | Entregue     |
 | AV03 | MVP parte 1 — aplicação transacional                    | 15/10/2026 | Entregue     |
-| AV04 | MVP parte 2 — web/mobile e validação                    | 29/10/2026 | —            |
+| AV04 | MVP parte 2 — web/mobile e validação                    | 29/10/2026 | Código pronto; faltam deploy e vídeo |
 | AV05 | Documentação técnica do MVP e ROI                       | 19/11/2026 | —            |
 | AV06 | Pitch técnico-comercial                                 | 03/12/2026 | —            |

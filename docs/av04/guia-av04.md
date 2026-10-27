@@ -476,7 +476,7 @@ que faz a plataforma ser "de gestão", e não só a tela da AV03.
 
 ---
 
-### [ ] T13 · Página pública de verificação (QR) ★ 🛠
+### [x] T13 · Página pública de verificação (QR) ★ 🛠
 
 **Contexto.** Rota `GET /verificacao/{token}` (T07), D-015.
 
@@ -485,6 +485,8 @@ que faz a plataforma ser "de gestão", e não só a tela da AV03.
 encontrado" (sem distinguir de token malformado).
 
 **Aceite.** Ler o QR do PDF (ou abrir a URL impressa) com o celular abre a página certa.
+
+> **Concluída em 27/10 (código).** `web/src/Verificacao.jsx`: `/verificar/<token>` sem login (identificador, data, parecer, SHA-256 do PDF), token malformado = inexistente, `/verificar` sem token pede o código, e conferência do PDF recebido pelo SHA-256 calculado no aparelho (Web Crypto), porque um PDF não pode conter o próprio hash: a instrução do guia ("compare com o hash impresso") foi trocada por essa conferência. Testada a 375 e 390 px com a `fn-web` real servindo `web/dist` e a resposta da CT-403 simulada (`evidencias/tela/t13-verificacao-local-390px.jpg`). **Falta:** ler o QR no celular por 4G depois do deploy (CT-412).
 
 **Relatório.** §5.
 
@@ -499,6 +501,8 @@ encontrado" (sem distinguir de token malformado).
 API e do bucket `entrada` para a origem do CloudFront.
 
 **Aceite.** Fluxo completo pela URL do CloudFront, em aba anônima, e a verificação no celular por
+
+> **Código pronto em 27/10; deploy pendente.** CloudFront substituído pela `fn-web` no próprio HTTP API (D-027): `infra/fn-web/index.mjs` (8 testes `node:test`), rotas `GET /` e `GET /{proxy+}` sem autorizador, CORS dos buckets com a origem da API, `fn-api` com buckets pelo nome (evita ciclo; verificado), `UrlVerificacaoBase=api`. `infra/deploy-web.sh` (env → build → sync, `index.html` por último → confere 200) e `infra/smoke-web.sh` (CT-410, CT-414). **Falta:** rodar `infra/deploy.sh`, `infra/deploy-web.sh` e `infra/smoke-web.sh` com o perfil `pa3`.
 4G (fora da rede de casa).
 
 **Relatório.** §6.
@@ -507,7 +511,7 @@ API e do bucket `entrada` para a origem do CloudFront.
 
 ## Fase 4 — Evidências, vídeo e relatório
 
-### [ ] T15 · Evidências e Matriz de Rastreabilidade ★ 🛠 / 🧑‍🏫 (matriz)
+### [x] T15 · Evidências e Matriz de Rastreabilidade ★ 🛠 / 🧑‍🏫 (matriz)
 
 **Contexto.** `docs/av03/evidencias.md` (modelo), AV01 (RF/RNF/RN/UC — só os códigos, no
 `AV2_Grupo39_fonte.md`), AV02 §5 (matriz de decisões).
@@ -524,6 +528,8 @@ API e do bucket `entrada` para a origem do CloudFront.
   e das métricas de uso (invocações do Lambda, RCU/WCU) contra as cotas.
 
 **Aceite.** Todo item do roteiro tem CT e evidência; todo RF do recorte aparece na matriz.
+
+> **Concluída em 27/10.** `docs/av04/evidencias.md` (CT-401 a CT-418, com situação; os ⏳ fecham com o deploy e o vídeo) e `docs/av04/matriz-rastreabilidade.md` (itens do roteiro, RF, RNF, RN/DE, com os não atendidos e o motivo), incluída na §10 do relatório. Clone limpo revelou e corrigiu um defeito de portabilidade no `FnCertificado` (cliente do SDK criado antes de conferir o ambiente). `./mvnw test`: 154 testes, 0 falhas, 1 pulado.
 
 **Relatório.** §9 e §10.
 
@@ -544,6 +550,8 @@ API e do bucket `entrada` para a origem do CloudFront.
 
 **Aceite.** Link funcionando em aba anônima.
 
+> **Roteiro pronto em 27/10** (`docs/av04/roteiro-video.md`, 10 blocos, checklist 🔒). **Falta:** gravar e publicar.
+
 **Relatório.** Link no cabeçalho e na §9.
 
 ---
@@ -561,6 +569,8 @@ atualizado, divergências da AV02) · 4 Persistência e idempotência · 5 Plata
 (`[PREMISSA]`, `[VALIDAR]`, seções 3–4 do roteiro) · Referências.
 
 **Aceite.** PDF aberto e lido por você; links clicáveis; nenhum dado pessoal de terceiros.
+
+> **Gerado em 27/10.** `ferramentas/relatorio/gerar-relatorio.mjs` (Markdown → HTML → PDF pelo Chrome/Edge headless, sem pandoc). **Falta:** preencher RA, URL da plataforma e link do vídeo no cabeçalho de `AV4_fonte.md` e gerar de novo.
 
 ---
 
@@ -600,10 +610,10 @@ sem `UpdateItem`/`DeleteItem` nela.
 | T10    | 🛠/🧑‍🏫 | Concluída | `web/` com login no Cognito real (ID token em memória); `cognito.js` do Rodrigo; testado no Chrome |
 | T11    | 🛠   | Concluída | Upload → S3 → polling; 4 estados provados na nuvem; HALF_EVEN igual ao PDF; 768 px sem rolagem |
 | T12    | 🛠   | Concluída | GSI2 + `GET /calibracoes` + aba Histórico; 154 testes; 9 envios (T09 + T11) com o mesmo usuário |
-| T13    | 🛠   | Pendente |            |
-| T14    | 🛠   | Pendente |            |
-| T15    | 🛠   | Pendente |            |
-| T16    | 🧑‍🏫   | Pendente |            |
-| T17    | 🧑‍🏫   | Pendente |            |
+| T13    | 🛠   | Concluída | Verificação pública + conferência do PDF no aparelho; falta QR no celular (CT-412) |
+| T14    | 🛠   | Código pronto | `fn-web` no HTTP API (D-027); deploy pendente |
+| T15    | 🛠   | Concluída | Evidências CT-401–418 e matriz; 154 testes |
+| T16    | 🧑‍🏫   | Roteiro pronto | Falta gravar |
+| T17    | 🧑‍🏫   | PDF gerado | Falta RA, URL e link do vídeo |
 | T18    | 🛠   | Pendente |            |
 | T19    | 🛠   | Pendente |            |

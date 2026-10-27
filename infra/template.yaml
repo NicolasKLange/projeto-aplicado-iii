@@ -2,17 +2,25 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >-
   Certificados de calibração (Projeto Aplicado III, AV04): S3, DynamoDB provisionado, três funções Lambda
-  java21, Cognito, HTTP API e IAM por função. O CloudFront e o plano gratuito ficam para a T10.
+  java21 e a fn-web (nodejs22.x), Cognito, HTTP API e IAM por função. A interface é servida pelo próprio
+  HTTP API (D-027), sem CloudFront.
 
 Parameters:
   OrigensWeb:
     Type: CommaDelimitedList
     Default: http://localhost:5173
-    Description: Origens do front-end (CORS do bucket de entrada e do HTTP API). Na T10 entra a URL do CloudFront.
+    Description: >-
+      Origens extras do front-end, além da própria API (D-027), para o CORS dos buckets e do HTTP API.
+      O padrão libera o npm run dev.
   UrlVerificacaoBase:
     Type: String
-    Default: http://localhost:5173
-    Description: Base da URL do QR Code (https://<cloudfront>); a rota é /verificar/<token>.
+    Default: api
+    Description: >-
+      Base da URL do QR Code; a rota é /verificar/<token>. "api" = a URL da própria API, que serve a
+      interface (D-027).
+
+Conditions:
+  UrlVerificacaoDaApi: !Equals [!Ref UrlVerificacaoBase, api]
 
 Globals:
   Function:
@@ -55,7 +63,12 @@ Resources:
               DaysAfterInitiation: 7
       CorsConfiguration:
         CorsRules:
-          - AllowedOrigins: !Ref OrigensWeb
+          # A interface vem da origem da API (D-027); o upload pré-assinado vai direto ao bucket.
+          - AllowedOrigins: !Split
+              - ','
+              - !Sub
+                - https://${Api}.execute-api.${AWS::Region}.${AWS::URLSuffix},${Outras}
+                - Outras: !Join [',', !Ref OrigensWeb]
             AllowedMethods: [PUT]
             AllowedHeaders: ['*']
             MaxAge: 600
@@ -109,7 +122,11 @@ Resources:
               DaysAfterInitiation: 7
       CorsConfiguration:
         CorsRules:
-          - AllowedOrigins: !Ref OrigensWeb
+          - AllowedOrigins: !Split
+              - ','
+              - !Sub
+                - https://${Api}.execute-api.${AWS::Region}.${AWS::URLSuffix},${Outras}
+                - Outras: !Join [',', !Ref OrigensWeb]
             AllowedMethods: [GET]
             AllowedHeaders: ['*']
             MaxAge: 600
@@ -132,7 +149,7 @@ Resources:
               Bool:
                 aws:SecureTransport: 'false'
 
-  # Privado; a política do OAC e a distribuição entram na T10.
+  # Privado; só a fn-web lê (D-027).
   BucketWeb:
     Type: AWS::S3::Bucket
     Properties:
@@ -306,15 +323,20 @@ Resources:
                 Effect: Allow
                 Action: [logs:CreateLogStream, logs:PutLogEvents]
                 Resource: !Sub '${LogsFnApi.Arn}:*'
-              # Só para assinar: a função não lê planilhas nem grava PDFs.
+              # Só para assinar: a função não lê planilhas nem grava PDFs. Buckets pelo nome, não por
+              # !GetAtt: o CORS dos buckets cita a API, e a API depende desta função (D-027).
               - Sid: AssinarEnvio
                 Effect: Allow
                 Action: s3:PutObject
-                Resource: !Sub '${BucketEntrada.Arn}/uploads/*'
+                Resource: !Sub
+                  - arn:${AWS::Partition}:s3:::${AWS::StackName}-entrada-${Sufixo}/uploads/*
+                  - Sufixo: !Select [2, !Split ['/', !Ref 'AWS::StackId']]
               - Sid: AssinarDownload
                 Effect: Allow
                 Action: s3:GetObject
-                Resource: !Sub '${BucketCertificados.Arn}/certificados/*'
+                Resource: !Sub
+                  - arn:${AWS::Partition}:s3:::${AWS::StackName}-certificados-${Sufixo}/certificados/*
+                  - Sufixo: !Select [2, !Split ['/', !Ref 'AWS::StackId']]
               # PutItem cria o envio; Query serve à lista do usuário (GSI2, T12). Sem Scan nem Delete.
               - Sid: Calibracoes
                 Effect: Allow
@@ -412,8 +434,13 @@ Resources:
       Environment:
         Variables:
           TABELA_CALIBRACOES: !Ref TabelaCalibracoes
-          BUCKET_ENTRADA: !Ref BucketEntrada
-          BUCKET_CERTIFICADOS: !Ref BucketCertificados
+          # Pelo nome, pelo mesmo motivo do papel (D-027).
+          BUCKET_ENTRADA: !Sub
+            - ${AWS::StackName}-entrada-${Sufixo}
+            - Sufixo: !Select [2, !Split ['/', !Ref 'AWS::StackId']]
+          BUCKET_CERTIFICADOS: !Sub
+            - ${AWS::StackName}-certificados-${Sufixo}
+            - Sufixo: !Select [2, !Split ['/', !Ref 'AWS::StackId']]
       Events:
         PostUploads:
           Type: HttpApi
@@ -483,7 +510,10 @@ Resources:
           TABELA_CALIBRACOES: !Ref TabelaCalibracoes
           BUCKET_CERTIFICADOS: !Ref BucketCertificados
           USER_POOL_ID: !Ref UserPool
-          URL_VERIFICACAO_BASE: !Ref UrlVerificacaoBase
+          URL_VERIFICACAO_BASE: !If
+            - UrlVerificacaoDaApi
+            - !Sub https://${Api}.execute-api.${AWS::Region}.${AWS::URLSuffix}
+            - !Ref UrlVerificacaoBase
       EventInvokeConfig:
         MaximumRetryAttempts: 2
         DestinationConfig:
@@ -491,7 +521,77 @@ Resources:
             Type: SQS
             Destination: !GetAtt FilaFalhas.Arn
 
+  # ---------------------------------------------------------------- Interface (D-027)
+  # A SPA sai do bucket web privado pela fn-web, nas rotas GET / e GET /{proxy+} do mesmo HTTP API:
+  # HTTPS, mesma origem da API e Lambda na cota permanente. As rotas da API (mais específicas) têm
+  # precedência sobre o {proxy+}.
+  LogsFnWeb:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AWS::StackName}-fn-web
+      RetentionInDays: 30
+
+  PapelFnWeb:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: fn-web
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: Logs
+                Effect: Allow
+                Action: [logs:CreateLogStream, logs:PutLogEvents]
+                Resource: !Sub '${LogsFnWeb.Arn}:*'
+              # Só leitura da interface publicada; nada dos buckets de dados.
+              - Sid: LerInterface
+                Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub '${BucketWeb.Arn}/*'
+
+  FnWeb:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-fn-web
+      CodeUri: fn-web/
+      Handler: index.handler
+      Runtime: nodejs22.x
+      MemorySize: 256
+      Timeout: 10
+      Role: !GetAtt PapelFnWeb.Arn
+      LoggingConfig:
+        LogGroup: !Ref LogsFnWeb
+      Environment:
+        Variables:
+          BUCKET_WEB: !Ref BucketWeb
+      Events:
+        Raiz:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Method: GET
+            Path: /
+            Auth:
+              Authorizer: NONE
+        Arquivos:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Method: GET
+            Path: '/{proxy+}'
+            Auth:
+              Authorizer: NONE
+
 Outputs:
+  UrlPlataforma:
+    Description: Endereço da Plataforma Web (interface e API na mesma origem, D-027).
+    Value: !Sub https://${Api}.execute-api.${AWS::Region}.${AWS::URLSuffix}/
   UrlApi:
     Value: !Sub https://${Api}.execute-api.${AWS::Region}.${AWS::URLSuffix}
   UserPoolId:

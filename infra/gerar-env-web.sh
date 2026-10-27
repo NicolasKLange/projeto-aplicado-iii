@@ -4,9 +4,9 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-PERFIL=pa3
-REGIAO=us-east-2
-STACK=pa3-av04
+PERFIL="${PERFIL:-pa3}"
+REGIAO="${REGIAO:-us-east-2}"
+STACK="${STACK:-pa3-av04}"
 
 saida() {
   aws --profile "$PERFIL" --region "$REGIAO" cloudformation describe-stacks --stack-name "$STACK" \

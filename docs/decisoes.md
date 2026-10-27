@@ -141,7 +141,7 @@ uso que a página pública já cobre. Premissa: o professor ainda não respondeu
 T00 sobre essa escolha (`[PREMISSA]` no relatório).
 
 ## D-016 — Hospedagem da SPA: S3 privado + CloudFront com OAC
-**Data:** 24/10/2026 · **Origem:** autor · **Status:** Vigente
+**Data:** 24/10/2026 · **Origem:** autor · **Status:** Substituída pela D-027 (o bucket privado continua; o CloudFront sai)
 
 A AV02 não definiu onde fica a interface. O bucket S3 fica privado e o CloudFront o serve com OAC,
 dando HTTPS, necessário para uma tela de login (Cognito). O plano gratuito do CloudFront inclui
@@ -303,3 +303,24 @@ https://docs.aws.eu/AWSCloudFormation/latest/TemplateReference/aws-resource-pric
 e https://aws.amazon.com/about-aws/whats-new/2026/09/cloudfront-flat-rate-pricing-plans-api/
 (consultadas em 25/10/2026). Não verifiquei se a SCP bloqueia o WAF em `us-east-1`; é a primeira
 coisa a testar na T10.
+
+## D-027 — Interface servida pelo próprio HTTP API (`fn-web`), sem CloudFront
+**Data:** 27/10/2026 · **Origem:** autor · **Status:** Vigente
+
+Resolve a pendência da D-026. A SPA compilada (`web/dist`) continua no bucket `web` privado, mas quem a
+serve é uma quinta função, `fn-web` (`nodejs22.x`, 256 MB, código em `infra/fn-web/`), ligada às rotas
+`GET /` e `GET /{proxy+}` do mesmo HTTP API, sem autorizador. As rotas da API, mais específicas, têm
+precedência sobre o `{proxy+}`; caminho sem extensão (`/`, `/verificar/<token>`) recebe o `index.html`.
+Motivos: (1) HTTPS pelo certificado do API Gateway, sem WAF nem `us-east-1`, que a SCP nega (D-022);
+(2) Lambda na cota permanente (1 milhão de requisições/mês); as requisições do API Gateway consomem
+créditos do plano gratuito, como as da API já consumiam (AV02 §2.1.4), sem gerar fatura; (3) interface e
+API na mesma origem, sem CORS para a API e com a URL do QR Code conhecida dentro do próprio stack
+(`UrlVerificacaoBase=api`). A `fn-web` só tem `s3:GetObject` no bucket `web`, não registra o caminho (a
+rota de verificação carrega o token) e devolve CSP, HSTS, `nosniff`, `Referrer-Policy: no-referrer` e
+`X-Frame-Options: DENY`. Como o CORS dos buckets agora cita a origem da API, e o OpenAPI gerado pelo SAM
+faz a API depender da `fn-api`, a `fn-api` passou a montar o nome e o ARN dos buckets pelo nome, como a
+`fn-ingestao` já fazia (sem isso há ciclo `BucketEntrada → Api → FnApi → BucketEntrada`). Custo aceito:
+cada página carrega três requisições pela API (HTML, JS e CSS), sem cache de borda; no volume da PoC é
+desprezível. Descartados: S3 *website* público (sem HTTPS), Amplify Hosting (cota de 12 meses, programa
+antigo) e Lambda Function URL (funcionaria, mas seria uma segunda origem, com CORS e outro domínio no QR).
+Em produção, com conta sem a SCP, o CloudFront da D-016 volta a ser a opção natural.
